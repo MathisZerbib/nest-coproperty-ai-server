@@ -23,9 +23,15 @@ export class UsersService {
       email: 'm@b.com',
       password: 'guess',
     },
+    {
+      userId: 3,
+      username: 'mathis',
+      email: 'mathis.zerbib@gmail.com',
+      password: 'azertyuiop',
+    },
   ];
-  findOne(username: string): User | undefined {
-    return this.users.find((user) => user.username === username);
+  findOne(email: string): User | undefined {
+    return this.users.find((user) => user.email === email);
   }
   findByEmail(email: string): User | undefined {
     return this.users.find((user) => user.email === email);

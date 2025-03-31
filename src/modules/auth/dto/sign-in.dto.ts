@@ -4,7 +4,7 @@ export class SignInDto {
   @IsEmail()
   @MinLength(4)
   @MaxLength(20)
-  username: string;
+  email: string;
 
   @IsString()
   @MinLength(8)
