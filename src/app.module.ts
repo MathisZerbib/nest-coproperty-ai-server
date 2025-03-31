@@ -12,6 +12,8 @@ import { UsersModule } from './modules/users/users.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: 'copoperty_ai',
+      entities: ['dist/**/*.entity{.ts,.js}'],
+      synchronize: true,
     }),
     AuthModule,
     UsersModule,
