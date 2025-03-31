@@ -72,4 +72,46 @@ export class AuthService {
   async revokeRefreshToken(refreshToken: string): Promise<void> {
     await this.refreshTokenRepository.delete({ token: refreshToken });
   }
+
+  async signUp(
+    email: string,
+    password: string,
+    username: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    // Check if a user with the same email already exists
+    const existingUser = await this.usersService.findOne(email);
+    if (existingUser) {
+      throw new UnauthorizedException('Email already exists');
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create the new user
+    const user = await this.usersService.create({
+      email,
+      password: hashedPassword,
+      username,
+    });
+
+    // Generate access and refresh tokens
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.userId,
+      email: user.email,
+    });
+    const refreshToken = await this.generateRefreshToken(user);
+
+    return { access_token: accessToken, refresh_token: refreshToken };
+  }
+
+  async getUserFromToken(token: string): Promise<User | null> {
+    try {
+      const payload = this.jwtService.verify<{ email: string }>(token);
+      const user = await this.usersService.findOne(payload.email);
+      return user ?? null;
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      return null;
+    }
+  }
 }

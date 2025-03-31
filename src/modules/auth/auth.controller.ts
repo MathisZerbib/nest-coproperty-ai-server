@@ -21,6 +21,18 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Post('signup')
+  signUp(
+    @Body() signUpDto: { username: string; email: string; password: string },
+  ) {
+    return this.authService.signUp(
+      signUpDto.email,
+      signUpDto.password,
+      signUpDto.username,
+    );
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Post('refresh')
   async refreshAccessToken(@Body() refreshDto: { refresh_token: string }) {
     return this.authService.refreshAccessToken(refreshDto.refresh_token);

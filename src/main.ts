@@ -17,7 +17,8 @@ async function bootstrap() {
 
   // Enable CORS with environment-based configuration
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? '*',
+    origin: 'http://localhost:3000', // Replace with your frontend URL
+    credentials: true, // Allow cookies and credentials
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });
 
