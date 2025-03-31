@@ -1,67 +1,75 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/user.entity';
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RefreshToken } from './refresh-token.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepository: Repository<RefreshToken>,
   ) {}
 
-  async signIn(email: string, pass: string): Promise<{ access_token: string }> {
-    // Ensure the user exists
+  async signIn(
+    email: string,
+    password: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
     const user = await this.usersService.findOne(email);
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Compare the provided password with the hashed password
-    const isPasswordValid = await bcrypt.compare(pass, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.userId,
+      email: user.email,
+    });
+    const refreshToken = await this.generateRefreshToken(user);
 
-    // Generate the JWT payload
-    const payload = { sub: user.userId, email: user.email };
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
+    return { access_token: accessToken, refresh_token: refreshToken };
   }
 
-  async signUp(
-    email: string,
-    username: string,
-    password: string,
+  async generateRefreshToken(user: User): Promise<string> {
+    const token = this.jwtService.sign({}, { expiresIn: '7d' }); // Refresh token valid for 7 days
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    const refreshToken = this.refreshTokenRepository.create({
+      token,
+      user,
+      expiresAt,
+    });
+    await this.refreshTokenRepository.save(refreshToken);
+
+    return token;
+  }
+
+  async refreshAccessToken(
+    refreshToken: string,
   ): Promise<{ access_token: string }> {
-    // Check if the user already exists
-    const existingUser = await this.usersService.findOne(email);
-    if (existingUser) {
-      throw new BadRequestException('Email already exists');
+    const storedToken = await this.refreshTokenRepository.findOne({
+      where: { token: refreshToken },
+      relations: ['user'],
+    });
+
+    if (!storedToken || storedToken.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const accessToken = await this.jwtService.signAsync({
+      sub: storedToken.user.userId,
+      email: storedToken.user.email,
+    });
 
-    // Create the new user
-    const newUser: Partial<User> = {
-      username,
-      email,
-      password: hashedPassword,
-    };
-    const createdUser = await this.usersService.create(newUser);
+    return { access_token: accessToken };
+  }
 
-    // Generate the JWT payload
-    const payload = { sub: createdUser.userId, email: createdUser.email };
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
+  async revokeRefreshToken(refreshToken: string): Promise<void> {
+    await this.refreshTokenRepository.delete({ token: refreshToken });
   }
 }

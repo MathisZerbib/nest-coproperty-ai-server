@@ -5,37 +5,37 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
+import { AuthGuard } from './auth.guard';
+
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: { email: string; password: string }) {
+  async signIn(@Body() signInDto: { email: string; password: string }) {
     return this.authService.signIn(signInDto.email, signInDto.password);
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('signup')
-  signUp(
-    @Body() signUpDto: { username: string; email: string; password: string },
-  ) {
-    return this.authService.signUp(
-      signUpDto.username,
-      signUpDto.email,
-      signUpDto.password,
-    );
+  @Post('refresh')
+  async refreshAccessToken(@Body() refreshDto: { refresh_token: string }) {
+    return this.authService.refreshAccessToken(refreshDto.refresh_token);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async logout(@Body() logoutDto: { refresh_token: string }) {
+    await this.authService.revokeRefreshToken(logoutDto.refresh_token);
+    return { message: 'Logged out successfully' };
   }
 
   @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(
-    @Request()
     req: Request & { user?: { id: string; username: string; email: string } },
   ) {
     if (!req.user) {

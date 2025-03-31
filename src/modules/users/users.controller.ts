@@ -17,7 +17,7 @@ export class UsersController {
   async getUserByUsername(
     @Param('username') username: string,
   ): Promise<User | undefined> {
-    return await this.usersService.findOne(username);
+    return await this.usersService.findByUserName(username);
   }
 
   @Post()
