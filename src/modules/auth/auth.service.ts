@@ -1,59 +1,65 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { User } from '../users/user.entity';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signIn(email: string, pass: string): Promise<{ access_token: string }> {
-    const user = this.usersService.findByEmail(email);
-    if (user?.password !== pass) {
-      throw new UnauthorizedException();
+    // Ensure the user exists
+    const user = await this.usersService.findOne(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
     }
+
+    // Compare the provided password with the hashed password
+    const isPasswordValid = await bcrypt.compare(pass, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // Generate the JWT payload
     const payload = { sub: user.userId, email: user.email };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
+
   async signUp(
     email: string,
     username: string,
     password: string,
   ): Promise<{ access_token: string }> {
-    // Check if user exists
-    const existingUser = this.usersService.findByEmail(email);
+    // Check if the user already exists
+    const existingUser = await this.usersService.findOne(email);
     if (existingUser) {
-      throw new UnauthorizedException('Email already exists');
+      throw new BadRequestException('Email already exists');
     }
 
-    const salt = 10;
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const newUserData = {
+    // Create the new user
+    const newUser: Partial<User> = {
       username,
       email,
       password: hashedPassword,
     };
-    // Create user
-    const newUser = this.usersService.create({
-      userId: Date.now(),
-      ...newUserData,
-    });
+    const createdUser = await this.usersService.create(newUser);
 
-    // Generate token
-    const payload = {
-      username: newUser.username,
-      email: newUser.email,
-    };
-
-    this.usersService.sendVerificationEmail(newUser.email);
-
+    // Generate the JWT payload
+    const payload = { sub: createdUser.userId, email: createdUser.email };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
