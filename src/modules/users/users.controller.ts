@@ -27,8 +27,9 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User details', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<User | undefined> {
-    return await this.usersService.findOne(id);
+  async findById(@Param('id') id: number): Promise<User | undefined> {
+    console.log('findById', id);
+    return await this.usersService.findById(id);
   }
 
   @ApiOperation({ summary: 'Get all users' })
@@ -46,6 +47,22 @@ export class UsersController {
     @Param('email') email: string,
   ): Promise<User | undefined> {
     return await this.usersService.findOne(email);
+  }
+
+  @ApiOperation({ summary: 'Update user details' })
+  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @Post(':id')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() user: Partial<User>,
+  ): Promise<User | undefined> {
+    const existingUser = await this.usersService.findOne(id);
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+    return await this.usersService.update({ ...existingUser, ...user });
   }
 
   @ApiOperation({ summary: 'Update user password' })
