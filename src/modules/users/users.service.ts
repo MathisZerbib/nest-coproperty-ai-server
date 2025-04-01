@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './dto/user.dto';
+import { User } from '../../entity/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +26,7 @@ export class UsersService {
   async getAllUsers(): Promise<User[]> {
     return this.userRepository.find();
   }
-  async findById(id: number): Promise<User | undefined> {
+  async findById(id: string): Promise<User | undefined> {
     const user = await this.userRepository.findOneBy({ userId: id });
     return user ?? undefined;
   }
@@ -43,7 +43,7 @@ export class UsersService {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
   async changePassword(
-    userId: number,
+    userId: string,
     oldPassword: string,
     newPassword: string,
   ): Promise<User | undefined> {

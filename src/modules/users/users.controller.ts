@@ -15,7 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/auth.guard';
-import { User } from './dto/user.dto';
+import { User } from '../../entity/user.entity';
 
 @ApiTags('Users') // Group routes under "Users" in Swagger
 @ApiBearerAuth() // Requires JWT Bearer token
@@ -27,7 +27,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User details', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
-  async findById(@Param('id') id: number): Promise<User | undefined> {
+  async findById(@Param('id') id: string): Promise<User | undefined> {
     console.log('findById', id);
     return await this.usersService.findById(id);
   }

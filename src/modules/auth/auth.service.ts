@@ -2,10 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users/dto/user.dto';
+import { User } from '../../entity/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RefreshToken } from './refresh-token.entity';
+import { RefreshToken } from '../../entity/refresh-token.entity';
 
 @Injectable()
 export class AuthService {

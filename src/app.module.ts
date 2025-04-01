@@ -3,8 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule'; // Import ScheduleModule
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { RefreshToken } from './modules/auth/refresh-token.entity';
-import { User } from './modules/users/dto/user.dto';
+// import { RefreshToken } from './entity/refresh-token.entity';
+// import { User } from './entity/user.entity';
+import { MessagesModule } from './modules/chat/messages.module';
+import { DataSource } from 'typeorm';
+import { ConversationModule } from './modules/conversation/conversation.module';
+import { CoproprieteModule } from './modules/copropriete/copropriete.module';
+// import { Chat } from '@entity/chat.entity';
 
 @Module({
   imports: [
@@ -15,12 +20,27 @@ import { User } from './modules/users/dto/user.dto';
       username: process.env.DB_USERNAME || 'zer',
       password: process.env.DB_PASSWORD,
       database: 'copoperty_ai',
-      entities: [User, RefreshToken],
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      migrations: ['src/migrations/*.ts'],
       synchronize: true,
     }),
-    ScheduleModule.forRoot(), // Enable scheduling
+    ScheduleModule.forRoot(), // Enable scheduling delete expired tokens
     AuthModule,
     UsersModule,
+    MessagesModule,
+    ConversationModule,
+    CoproprieteModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private dataSource: DataSource) {
+    this.dataSource
+      .initialize()
+      .then(() => {
+        console.log('Database connection established');
+      })
+      .catch((error) => {
+        console.error('Error during Data Source initialization:', error);
+      });
+  }
+}

@@ -16,8 +16,8 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
-import { SignInDto } from './dto/sign-in.dto';
-import { SignUpDto } from './dto/sign-up.dto';
+import { SignInEntity } from '../../entity/sign-in.entity';
+import { SignUpEntity } from '../../entity/sign-up.entity';
 
 @ApiTags('Auth') // Group routes under "Auth" in Swagger
 @Controller('auth')
@@ -25,26 +25,26 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Sign in a user' })
-  @ApiBody({ type: SignInDto }) // Define the request body schema
+  @ApiBody({ type: SignInEntity }) // Define the request body schema
   @ApiResponse({ status: 200, description: 'User successfully signed in' })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async signIn(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto.email, signInDto.password);
+  async signIn(@Body() SignInEntity: SignInEntity) {
+    return this.authService.signIn(SignInEntity.email, SignInEntity.password);
   }
 
   @ApiOperation({ summary: 'Sign up a new user' })
-  @ApiBody({ type: SignUpDto }) // Define the request body schema
+  @ApiBody({ type: SignUpEntity }) // Define the request body schema
   @ApiResponse({ status: 201, description: 'User successfully signed up' })
   @ApiResponse({ status: 400, description: 'Email already exists' })
   @HttpCode(HttpStatus.CREATED)
   @Post('signup')
-  signUp(@Body() SignUpDto: SignUpDto) {
+  signUp(@Body() SignUpEntity: SignUpEntity) {
     return this.authService.signUp(
-      SignUpDto.email,
-      SignUpDto.password,
-      SignUpDto.username,
+      SignUpEntity.email,
+      SignUpEntity.password,
+      SignUpEntity.username,
     );
   }
 

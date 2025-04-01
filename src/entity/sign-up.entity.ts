@@ -7,7 +7,7 @@ import {
   Matches,
 } from 'class-validator';
 
-export class SignUpDto {
+export class SignUpEntity {
   @ApiProperty({ example: 'JohnDoe', description: 'Username of the user' })
   @IsString()
   @MinLength(4)

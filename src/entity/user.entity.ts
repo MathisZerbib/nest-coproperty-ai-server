@@ -6,12 +6,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { RefreshToken } from '../../auth/refresh-token.entity';
+import { RefreshToken } from './refresh-token.entity';
+import { Copropriete } from './copropriete.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  userId: number;
+  @PrimaryGeneratedColumn('uuid') // Use UUID for globally unique IDs
+  userId: string;
 
   @Column({ unique: true })
   email: string;
@@ -25,13 +26,13 @@ export class User {
   @Column({ default: false })
   isVerified: boolean;
 
-  @Column({ nullable: true }) // Allow null values for phone
+  @Column({ nullable: true })
   phone: string;
 
-  @Column({ nullable: true }) // Allow null values for address
+  @Column({ nullable: true })
   address: string;
 
-  @Column({ default: 'user' }) // Default role is 'user'
+  @Column({ default: 'user' })
   role: string;
 
   @CreateDateColumn() // Automatically set when the entity is created
@@ -42,4 +43,7 @@ export class User {
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];
+
+  @OneToMany(() => Copropriete, (copropriete) => copropriete.user)
+  coproprietes: Copropriete[]; // Relationship with Copropriete
 }
