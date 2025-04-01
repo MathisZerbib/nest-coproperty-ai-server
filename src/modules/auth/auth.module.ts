@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { jwtConstants } from './constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './refresh-token.entity';
+import { TokenCleanupService } from './token-cleanup.service'; // Import the service
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { RefreshToken } from './refresh-token.entity';
     }),
     TypeOrmModule.forFeature([RefreshToken]),
   ],
-  providers: [AuthService],
+  providers: [AuthService, TokenCleanupService], // Register the service
   controllers: [AuthController],
   exports: [AuthService],
 })

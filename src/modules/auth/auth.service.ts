@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users/user.entity';
+import { User } from '../users/dto/user.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshToken } from './refresh-token.entity';
@@ -35,6 +35,10 @@ export class AuthService {
   }
 
   async generateRefreshToken(user: User): Promise<string> {
+    // Delete existing refresh tokens for the user
+    await this.refreshTokenRepository.delete({ user });
+
+    // Generate a new refresh token
     const token = this.jwtService.sign({}, { expiresIn: '7d' }); // Refresh token valid for 7 days
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { User } from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -11,7 +11,10 @@ export class UsersService {
   ) {}
 
   async findOne(email: string): Promise<User | undefined> {
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: { refreshTokens: true },
+    });
     return user ?? undefined;
   }
 
@@ -23,8 +26,42 @@ export class UsersService {
   async getAllUsers(): Promise<User[]> {
     return this.userRepository.find();
   }
-  async findByUserName(username: string): Promise<User | undefined> {
-    const user = await this.userRepository.findOne({ where: { username } });
+  async findById(id: number): Promise<User | undefined> {
+    const user = await this.userRepository.findOneBy({ userId: id });
     return user ?? undefined;
+  }
+
+  async update(user: User): Promise<User> {
+    return this.userRepository.save(user);
+  }
+  private async comparePasswords(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    // Assuming bcrypt is used for hashing passwords
+    const bcrypt = await import('bcrypt');
+    return bcrypt.compare(plainPassword, hashedPassword);
+  }
+  async changePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<User | undefined> {
+    const user = await this.userRepository.findOneBy({ userId });
+    if (!user) {
+      return undefined;
+    }
+
+    // Assuming you have a method to compare passwords
+    const isPasswordValid = await this.comparePasswords(
+      oldPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      return undefined;
+    }
+
+    user.password = newPassword;
+    return await this.userRepository.save(user);
   }
 }
