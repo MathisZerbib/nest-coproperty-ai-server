@@ -34,22 +34,39 @@ async function generateEmbedding(text: string): Promise<number[]> {
         },
       );
 
-      if (!response.data || response.data.length === 0) {
+      if (
+        !response.data ||
+        !Array.isArray(response.data) ||
+        response.data.length === 0
+      ) {
         throw new Error('Empty embedding response');
       }
 
-      return response.data;
+      if (response.data.every((item: any) => typeof item === 'number')) {
+        return response.data;
+      } else {
+        throw new Error('Invalid embedding response format');
+      }
     } catch (error: any) {
-      if (error.response?.status === 503) {
+      if (
+        axios.isAxiosError(error) &&
+        (error.response?.status === 503 || error.response?.status === 429)
+      ) {
         // Model loading - exponential backoff
         const waitTime = Math.pow(2, retries) * 1000;
         await new Promise((resolve) => setTimeout(resolve, waitTime));
         retries++;
       } else {
-        console.error(`Attempt ${retries + 1} failed:`, error.message || error);
+        if (error instanceof Error) {
+          console.error(`Attempt ${retries + 1} failed:`, error.message);
+        } else {
+          console.error(`Attempt ${retries + 1} failed:`, error);
+        }
         if (retries === maxRetries - 1) {
           throw new Error(
-            `Embedding failed after ${maxRetries} attempts: ${error.message || error}`,
+            `Embedding failed after ${maxRetries} attempts: ${
+              error instanceof Error ? error.message : error
+            }`,
           );
         }
         retries++;
@@ -328,7 +345,7 @@ async function upsertDocuments(): Promise<void> {
           } catch (err: any) {
             console.error(
               `Failed to process document ${doc.id}:`,
-              err.message || err,
+              err instanceof Error ? err.message : err,
             );
             return null;
           }
@@ -339,7 +356,7 @@ async function upsertDocuments(): Promise<void> {
       const validVectors = vectors.filter((v) => v !== null);
 
       if (validVectors.length > 0) {
-        await index.upsert(validVectors as any); // Type assertion for Pinecone upsert
+        await index.upsert(validVectors); // Type assertion for Pinecone upsert
         console.log(
           `Uploaded batch ${i / batchSize + 1} (${validVectors.length} vectors)`,
         );
@@ -347,7 +364,7 @@ async function upsertDocuments(): Promise<void> {
     } catch (batchError: any) {
       console.error(
         `Batch ${i / batchSize + 1} failed:`,
-        batchError.message || batchError,
+        batchError instanceof Error ? batchError.message : batchError,
       );
     }
   }
@@ -370,6 +387,9 @@ async function run(): Promise<void> {
   }
 }
 run().catch((error) => {
-  console.error('Error during execution:', error.message || error);
+  console.error(
+    'Error during execution:',
+    error instanceof Error ? error.message : error,
+  );
   process.exit(1);
 });
