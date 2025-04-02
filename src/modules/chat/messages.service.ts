@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Messages } from '../../entity/messages.entity';
 import { Conversation } from '../../entity/conversation.entity';
 import axios from 'axios';
-
+import { pineconeRetriever } from '../pinecone/pineconeService';
 @Injectable()
 export class MessagesService {
   private readonly LM_STUDIO_URL =
@@ -203,10 +203,11 @@ export class MessagesService {
     const conversation = await this.getConversationById(conversationId);
 
     // Generate query embedding (removed unused variable)
-    await this.generateEmbedding(question);
+    const queryEmbedding = await this.generateEmbedding(question);
 
     // Retrieve context (mocked for now, replace with Pinecone or other retriever)
-    const context = 'Mocked context from retriever'; // Replace with actual retriever logic
+    const context = await pineconeRetriever.getContext(queryEmbedding);
+    console.log('Retrieved context:', context);
 
     // Build the RAG prompt
     const prompt = this.buildRAGPrompt(context, question);
