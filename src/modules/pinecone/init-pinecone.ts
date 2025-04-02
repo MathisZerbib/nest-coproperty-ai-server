@@ -61,7 +61,7 @@ async function createIndex(): Promise<void> {
 createIndex().catch((error) => {
   console.error(
     'Initialization failed:',
-    error instanceof Error ? error.message : error
+    error instanceof Error ? error.message : error,
   );
   process.exit(1);
 });
