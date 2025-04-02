@@ -43,11 +43,11 @@ class PineconeContextRetriever {
       if (!index) {
         throw new Error(`Index ${this.indexName} not found`);
       }
-      const results = await index.query({
+      const results = (await index.query({
         vector: queryEmbedding,
         topK,
         includeMetadata: true,
-      }) as PineconeQueryResponse;
+      })) as PineconeQueryResponse;
 
       if (results.matches) {
         results.matches = results.matches.map((match) => ({
