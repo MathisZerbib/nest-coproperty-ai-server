@@ -28,4 +28,44 @@ export class ConversationService {
       take: 10,
     });
   }
+  async getAllConversationsByUserId(userId: string): Promise<Conversation[]> {
+    return this.conversationRepository.find({
+      where: { userId },
+      order: { updated_at: 'DESC' },
+    });
+  }
+
+  async updateConversation(
+    id: string,
+    updates: Partial<Conversation>,
+  ): Promise<Conversation> {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id },
+    });
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+    Object.assign(conversation, updates);
+    return this.conversationRepository.save(conversation);
+  }
+  async deleteConversation(id: string): Promise<Conversation> {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id },
+    });
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+    await this.conversationRepository.remove(conversation);
+    return conversation;
+  }
+  async getConversationById(id: string): Promise<Conversation> {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id },
+      relations: ['messages'],
+    });
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+    return conversation;
+  }
 }
