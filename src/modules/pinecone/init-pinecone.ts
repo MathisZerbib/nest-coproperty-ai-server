@@ -1,7 +1,11 @@
+import { ConfigModule } from '@nestjs/config';
 import { Pinecone, CreateIndexOptions } from '@pinecone-database/pinecone';
-import dotenv from 'dotenv';
 
-dotenv.config();
+// Load environment variables from .env file
+void ConfigModule.forRoot({
+  isGlobal: true,
+  envFilePath: '.env',
+});
 
 const indexName = process.env.PINECONE_INDEX || '';
 const dimension = parseInt(process.env.PINECONE_DIMENSION || '', 10);

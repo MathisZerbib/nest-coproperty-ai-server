@@ -1,8 +1,13 @@
 import { Pinecone, Index } from '@pinecone-database/pinecone';
 import axios from 'axios';
-import dotenv from 'dotenv';
+import { Document } from './pinecone-model';
+import { ConfigModule } from '@nestjs/config';
 
-dotenv.config();
+// Load environment variables from .env file
+void ConfigModule.forRoot({
+  isGlobal: true,
+  envFilePath: '.env',
+});
 
 // Initialize Pinecone with environment configuration
 const pc = new Pinecone({
@@ -77,28 +82,19 @@ async function generateEmbedding(text: string): Promise<number[]> {
   throw new Error('Failed to generate embedding after maximum retries');
 }
 
-interface Document {
-  id: string;
-  text: string;
-  fileName?: string;
-  date?: string;
-  size?: string;
-  type?: string;
-}
-
 async function upsertDocuments(): Promise<void> {
   const index: Index = pc.index(process.env.PINECONE_INDEX || '');
 
   const documents: Document[] = [
     // Example documents
     {
-      id: '1',
-      text: 'Kourikaou Apartments: A modern residential complex in the heart of Montpellier.',
+      id: '41',
+      text: 'Kourikaou Apartments à été Designé par Le Corbusier, un grand architecte de renom.',
     },
-    {
-      id: '2',
-      text: 'Kourikaou Apartments have been recognized for their eco-friendly design.',
-    },
+    // {
+    //   id: '2',
+    //   text: 'Kourikaou Apartments have been recognized for their eco-friendly design.',
+    // },
     //         {
     //           id: '1',
     //           text: 'Kourikaou Apartments: A modern residential complex in the heart of Montpellier\'s Saint-Roch district, offering luxury living with 24/7 security and premium amenities.'

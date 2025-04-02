@@ -24,3 +24,12 @@ export type QueryOptions = {
   topK: number;
   includeMetadata: boolean;
 };
+
+export type Document = {
+  id: string;
+  text: string;
+  fileName?: string;
+  date?: string;
+  size?: string;
+  type?: string;
+};

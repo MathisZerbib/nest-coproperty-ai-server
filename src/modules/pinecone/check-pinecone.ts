@@ -1,7 +1,11 @@
+import { ConfigModule } from '@nestjs/config';
 import { Pinecone } from '@pinecone-database/pinecone';
-import dotenv from 'dotenv';
 
-dotenv.config();
+// Load environment variables from .env file
+void ConfigModule.forRoot({
+  isGlobal: true,
+  envFilePath: '.env',
+});
 
 async function checkIndexStats(): Promise<void> {
   const apiKey = process.env.PINECONE_API_KEY || '';
