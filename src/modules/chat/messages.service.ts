@@ -24,7 +24,7 @@ export class MessagesService {
   async getConversationById(id: string): Promise<Conversation> {
     const conversation = await this.conversationRepository.findOne({
       where: { id },
-      relations: ['messages'],
+      relations: ['messages'], // Ensure this matches the relationship name in the Conversation entity
     });
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
@@ -49,6 +49,12 @@ export class MessagesService {
 
     while (retries < maxRetries) {
       try {
+        console.log('Generating embedding for text:', text);
+        console.log(
+          'Hugging Face API Key:',
+          this.HUGGINGFACE_API_KEY ? 'Provided' : 'Not provided',
+        );
+        console.log('LM Studio URL:', this.LM_STUDIO_URL);
         const response = await axios.post(
           'https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2',
           { inputs: text },
@@ -155,16 +161,25 @@ export class MessagesService {
         },
       );
 
-      const responseData = response.data as { generated_text?: string };
-      if (!responseData || !responseData.generated_text) {
-        throw new Error('Invalid response from LLM');
+      console.log('Raw response from LLM:', response.data); // Log the raw response
+
+      const responseData = response.data as {
+        choices?: { text?: string }[];
+      };
+
+      if (
+        !responseData ||
+        !responseData.choices ||
+        responseData.choices.length === 0
+      ) {
+        throw new Error('Invalid response from LLM: Missing choices');
       }
 
-      const generatedText = (response.data as { generated_text?: string })
-        .generated_text;
+      const generatedText = responseData.choices[0]?.text;
       if (typeof generatedText !== 'string') {
-        throw new Error('Invalid response: generated_text is not a string');
+        throw new Error('Invalid response: text is not a string');
       }
+
       return generatedText.trim();
     } catch (error: any) {
       if (error instanceof Error) {
@@ -183,7 +198,7 @@ export class MessagesService {
     conversationId: string,
     userId: string,
     question: string,
-  ): Promise<Messages> {
+  ): Promise<{ userMessage: Messages; assistantMessage: Messages }> {
     // Retrieve the conversation
     const conversation = await this.getConversationById(conversationId);
 
@@ -202,22 +217,27 @@ export class MessagesService {
     // Clean the LLM response
     const cleanedResponse = this.cleanLLMResponse(llmResponse);
 
+    const sequenceNumber = conversation.messages.length + 1;
+
     // Save the user's question as a message
     const userMessage = await this.createMessage({
       conversation,
       content: question,
       role: 'user',
       userId,
+      sequence_number: sequenceNumber,
     });
 
     // Save the LLM's response as a message
-    await this.createMessage({
+    const assistantMessage = await this.createMessage({
       conversation,
       content: cleanedResponse,
       role: 'assistant',
-      userId: userId, // Assistant doesn't have a userId
+      userId: userId,
+      sequence_number: sequenceNumber + 1,
     });
 
-    return userMessage;
+    // Return both messages
+    return { userMessage, assistantMessage };
   }
 }

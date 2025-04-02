@@ -13,9 +13,8 @@ export class Messages {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Conversation
-  @ManyToOne(() => Conversation, (conversation) => conversation.id, {
-    onDelete: 'CASCADE',
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
+    onDelete: 'CASCADE', // Delete messages when the conversation is deleted
   })
   conversation: Conversation;
 

@@ -159,9 +159,22 @@ export class MessagesController {
   @UseGuards(AuthGuard)
   @Post('ask')
   async askQuestion(
-    @Body() body: { conversationId: string; userId: string; question: string },
-  ): Promise<Messages> {
+    @Body()
+    body: {
+      conversationId: string;
+      userId: string;
+      question: string;
+    },
+  ) {
     const { conversationId, userId, question } = body;
-    return this.messagesService.askQuestion(conversationId, userId, question);
+
+    // Wait for the LLM response and return both messages
+    const { userMessage, assistantMessage } =
+      await this.messagesService.askQuestion(conversationId, userId, question);
+
+    return {
+      userMessage,
+      assistantMessage,
+    };
   }
 }

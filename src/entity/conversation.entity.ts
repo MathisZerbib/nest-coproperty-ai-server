@@ -22,7 +22,9 @@ export class Conversation {
   @Column({ type: 'uuid' })
   userId: string;
 
-  @OneToMany(() => Messages, (messages) => messages.userId)
+  @OneToMany(() => Messages, (messages) => messages.conversation, {
+    cascade: true, // Automatically save related messages
+  })
   messages: Messages[];
 
   @CreateDateColumn()
