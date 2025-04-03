@@ -7,7 +7,7 @@ void ConfigModule.forRoot({
   envFilePath: '.env',
 });
 
-async function checkIndexStats(): Promise<void> {
+async function checkLastUploadedIndex(): Promise<void> {
   const apiKey = process.env.PINECONE_API_KEY || '';
   const indexName = process.env.PINECONE_INDEX || '';
 
@@ -27,8 +27,27 @@ async function checkIndexStats(): Promise<void> {
   const index = pinecone.index(indexName);
 
   try {
+    // Fetch index statistics
     const stats = await index.describeIndexStats();
-    console.log(stats);
+
+    console.log('Index Stats:', stats);
+
+    // Check for the last uploaded index based on metadata or timestamp
+    const namespaces = stats.namespaces || {};
+    const lastUploaded = Object.entries(namespaces)
+      .map(([namespace, data]) => ({
+        namespace,
+        timestamp: Number(data?.recordCount) || 0, // Use `vectorCount` or another valid property
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp)[0]; // Sort by timestamp descending
+
+    if (lastUploaded) {
+      console.log(
+        `Last uploaded index: Namespace "${lastUploaded.namespace}" at timestamp ${lastUploaded.timestamp}`,
+      );
+    } else {
+      console.log('No uploaded indexes found.');
+    }
   } catch (error: any) {
     console.error(
       'Error fetching index stats:',
@@ -38,6 +57,6 @@ async function checkIndexStats(): Promise<void> {
   }
 }
 
-checkIndexStats().catch((error) => {
+checkLastUploadedIndex().catch((error) => {
   console.error('Error:', error instanceof Error ? error.message : error);
 });

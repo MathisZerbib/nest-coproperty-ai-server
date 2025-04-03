@@ -1,6 +1,6 @@
 import { Pinecone, Index } from '@pinecone-database/pinecone';
 import axios from 'axios';
-import { Document } from './pinecone-model';
+import { DocumentUpload } from './pinecone-model';
 import { ConfigModule } from '@nestjs/config';
 
 // Load environment variables from .env file
@@ -39,6 +39,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
         },
       );
 
+      console.log('Embedding response:', response.data);
       if (
         !response.data ||
         !Array.isArray(response.data) ||
@@ -85,7 +86,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
 async function upsertDocuments(): Promise<void> {
   const index: Index = pc.index(process.env.PINECONE_INDEX || '');
 
-  const documents: Document[] = [
+  const documents: DocumentUpload[] = [
     // Example documents
     {
       id: '41',

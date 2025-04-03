@@ -4,7 +4,8 @@ import { Repository } from 'typeorm';
 import { Messages } from '../../entity/messages.entity';
 import { Conversation } from '../../entity/conversation.entity';
 import axios from 'axios';
-import { pineconeRetriever } from '../pinecone/pineconeService';
+import { PineconeService } from '../pinecone/pinecone.service';
+
 @Injectable()
 export class MessagesService {
   private readonly LM_STUDIO_URL =
@@ -16,6 +17,7 @@ export class MessagesService {
     private readonly conversationRepository: Repository<Conversation>,
     @InjectRepository(Messages)
     private readonly messagesRepository: Repository<Messages>,
+    private readonly pineconeService: PineconeService, // ✅ Inject PineconeService
   ) {}
 
   /**
@@ -202,12 +204,20 @@ export class MessagesService {
     // Retrieve the conversation
     const conversation = await this.getConversationById(conversationId);
 
-    // Generate query embedding (removed unused variable)
+    // Generate query embedding
     const queryEmbedding = await this.generateEmbedding(question);
 
-    // Retrieve context (mocked for now, replace with Pinecone or other retriever)
-    const context = await pineconeRetriever.getContext(queryEmbedding);
-    console.log('Retrieved context:', context);
+    // Retrieve context using Pinecone
+    let context = '';
+    try {
+      context = await this.pineconeService.getContext(queryEmbedding);
+      console.log('Retrieved context:', context);
+    } catch (error) {
+      console.error(
+        'Error retrieving context:',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+    }
 
     // Build the RAG prompt
     const prompt = this.buildRAGPrompt(context, question);

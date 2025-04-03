@@ -6,9 +6,12 @@ import { UsersModule } from './modules/users/users.module';
 import { MessagesModule } from './modules/chat/messages.module';
 import { ConversationModule } from './modules/conversation/conversation.module';
 import { CoproprieteModule } from './modules/copropriete/copropriete.module';
+import { UploadModule } from './modules/upload/upload.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -27,6 +30,7 @@ import { CoproprieteModule } from './modules/copropriete/copropriete.module';
     MessagesModule,
     ConversationModule,
     CoproprieteModule,
+    UploadModule,
   ],
 })
 export class AppModule {}

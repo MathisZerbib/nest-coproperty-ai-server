@@ -25,11 +25,20 @@ export type QueryOptions = {
   includeMetadata: boolean;
 };
 
-export type Document = {
+export type DocumentUpload = {
   id: string;
   text: string;
   fileName?: string;
   date?: string;
   size?: string;
   type?: string;
+  metadata?: Metadata;
+};
+
+export type Metadata = {
+  author?: string;
+  type?: string; // The type of the document (e.g., "document", "legal", "resident")
+  tags?: string[];
+  year?: number;
+  [key: string]: any; // Allow additional dynamic key-value pairs ??? TODO is this useful ?
 };

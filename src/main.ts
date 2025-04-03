@@ -1,14 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConfigModule } from '@nestjs/config';
 import { setupSwagger } from './swagger';
 import { setupValidation } from './validation';
-
-// Load environment variables from .env file
-void ConfigModule.forRoot({
-  isGlobal: true,
-  envFilePath: '.env',
-});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
