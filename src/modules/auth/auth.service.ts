@@ -21,13 +21,19 @@ export class AuthService {
     password: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
     const user = await this.usersService.findOne(email);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const accessToken = await this.jwtService.signAsync({
       sub: user.userId,
       email: user.email,
+      role: user.role,
     });
     const refreshToken = await this.generateRefreshToken(user);
 
@@ -35,11 +41,9 @@ export class AuthService {
   }
 
   async generateRefreshToken(user: User): Promise<string> {
-    // Delete existing refresh tokens for the user
     await this.refreshTokenRepository.delete({ user });
 
-    // Generate a new refresh token
-    const token = this.jwtService.sign({}, { expiresIn: '7d' }); // Refresh token valid for 7 days
+    const token = this.jwtService.sign({}, { expiresIn: '7d' });
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
@@ -68,6 +72,7 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync({
       sub: storedToken.user.userId,
       email: storedToken.user.email,
+      role: storedToken.user.role,
     });
 
     return { access_token: accessToken };
@@ -82,40 +87,26 @@ export class AuthService {
     password: string,
     username: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
-    // Check if a user with the same email already exists
     const existingUser = await this.usersService.findOne(email);
     if (existingUser) {
       throw new UnauthorizedException('Email already exists');
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the new user
     const user = await this.usersService.create({
       email,
       password: hashedPassword,
       username,
     });
 
-    // Generate access and refresh tokens
     const accessToken = await this.jwtService.signAsync({
       sub: user.userId,
       email: user.email,
+      role: user.role,
     });
     const refreshToken = await this.generateRefreshToken(user);
 
     return { access_token: accessToken, refresh_token: refreshToken };
-  }
-
-  async getUserFromToken(token: string): Promise<User | null> {
-    try {
-      const payload = this.jwtService.verify<{ email: string }>(token);
-      const user = await this.usersService.findOne(payload.email);
-      return user ?? null;
-    } catch (error) {
-      console.error('Error verifying token:', error);
-      return null;
-    }
   }
 }

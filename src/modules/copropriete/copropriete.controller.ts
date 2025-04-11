@@ -5,11 +5,11 @@ import {
   Put,
   Delete,
   Param,
-  Headers,
   HttpException,
   HttpStatus,
   Post,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,10 +37,15 @@ export class CoproprieteController {
     type: [Copropriete],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Coproprietes not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @UseGuards(AuthGuard)
   @Get()
   async getCoproprietes(
-    @Headers('user-id') userId: string,
+    @Req() req: { user: { sub: string } },
   ): Promise<Copropriete[]> {
+    const userId: string = req.user.sub;
+    console.log('User ID from request:', userId);
     if (!userId) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
@@ -74,9 +79,10 @@ export class CoproprieteController {
   @UseGuards(AuthGuard)
   @Post()
   async createCopropriete(
-    @Headers('user-id') userId: string,
+    @Req() req: { user: { sub: string } }, // Extract user from the request
     @Body() body: CoproprieteDto,
   ): Promise<Copropriete> {
+    const userId = req.user.sub; // Get userId from the JWT payload
     if (!userId) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }

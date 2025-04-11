@@ -5,27 +5,22 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
 import { SignInEntity } from '../../entity/sign-in.entity';
 import { SignUpEntity } from '../../entity/sign-up.entity';
+import { AuthGuard } from './auth.guard';
 
-@ApiTags('Auth') // Group routes under "Auth" in Swagger
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Sign in a user' })
-  @ApiBody({ type: SignInEntity }) // Define the request body schema
+  @ApiBody({ type: SignInEntity })
   @ApiResponse({ status: 200, description: 'User successfully signed in' })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   @HttpCode(HttpStatus.OK)
@@ -35,7 +30,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Sign up a new user' })
-  @ApiBody({ type: SignUpEntity }) // Define the request body schema
+  @ApiBody({ type: SignUpEntity })
   @ApiResponse({ status: 201, description: 'User successfully signed up' })
   @ApiResponse({ status: 400, description: 'Email already exists' })
   @HttpCode(HttpStatus.CREATED)
@@ -49,7 +44,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Refresh access token' })
-  @ApiBody({ schema: { example: { refresh_token: 'your-refresh-token' } } }) // Example for request body
+  @ApiBody({ schema: { example: { refresh_token: 'your-refresh-token' } } })
   @ApiResponse({ status: 200, description: 'Access token refreshed' })
   @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
   @HttpCode(HttpStatus.OK)
@@ -68,22 +63,13 @@ export class AuthController {
     return { message: 'Logged out successfully' };
   }
 
-  @ApiOperation({ summary: 'Get user profile' })
-  @ApiBearerAuth() // Requires JWT Bearer token
-  @ApiResponse({ status: 200, description: 'User profile retrieved' })
+  @ApiOperation({ summary: 'Get authenticated user details' })
+  @ApiResponse({ status: 200, description: 'Authenticated user details' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(AuthGuard)
-  @Get('profile')
-  getProfile(
-    req: Request & { user?: { id: string; username: string; email: string } },
-  ) {
-    if (!req.user) {
-      throw new Error('User not found');
-    }
-    return {
-      id: req.user.id,
-      username: req.user.username,
-      email: req.user.email,
-    };
+  @Get('me')
+  getAuthenticatedUser(@Req() req: { user: { sub: string } }) {
+    const userId = req.user.sub;
+    return { userId };
   }
 }

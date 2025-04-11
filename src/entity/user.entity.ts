@@ -11,7 +11,7 @@ import { Copropriete } from './copropriete.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn('uuid') // Use UUID for globally unique IDs
+  @PrimaryGeneratedColumn('uuid')
   userId: string;
 
   @Column({ unique: true })
@@ -20,30 +20,24 @@ export class User {
   @Column()
   username: string;
 
-  @Column()
-  password: string;
-
-  @Column({ default: false })
-  isVerified: boolean;
-
   @Column({ nullable: true })
   phone: string;
 
-  @Column({ nullable: true })
-  address: string;
+  @Column()
+  password: string;
 
   @Column({ default: 'user' })
   role: string;
 
-  @CreateDateColumn() // Automatically set when the entity is created
+  @CreateDateColumn()
   created_at: Date;
 
-  @UpdateDateColumn() // Automatically updated when the entity is updated
+  @UpdateDateColumn()
   updated_at: Date;
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];
 
   @OneToMany(() => Copropriete, (copropriete) => copropriete.user)
-  coproprietes: Copropriete[]; // Relationship with Copropriete
+  coproprietes: Copropriete[];
 }

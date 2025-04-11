@@ -12,10 +12,19 @@ export class CoproprieteService {
 
   // Retrieve all coproprietes for a specific user
   async getCoproprietes(userId: string): Promise<Copropriete[]> {
-    return this.coproprieteRepository.find({
-      where: { user: { userId } }, // Match userId from the User entity
-      relations: ['user'], // Include the user relationship if needed
-    });
+    console.log('Fetching coproprietes for user:', userId);
+    let coproprietes: Copropriete[];
+    try {
+      coproprietes = await this.coproprieteRepository.find({
+        where: { user: { userId } },
+        relations: ['user'],
+      });
+    } catch (error) {
+      console.error('Error fetching coproprietes:', error);
+      throw new NotFoundException('Coproprietes not found');
+    }
+    console.log('Coproprietes found:', coproprietes);
+    return coproprietes;
   }
 
   // Create a new copropriete for a specific user

@@ -15,12 +15,15 @@ export class RefreshToken {
   @Column()
   token: string;
 
-  @ManyToOne(() => User, (user) => user.refreshTokens, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.refreshTokens, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   user: User;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: false })
   expiresAt: Date;
 }

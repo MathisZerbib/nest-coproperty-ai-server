@@ -26,8 +26,11 @@ export class UsersService {
   async getAllUsers(): Promise<User[]> {
     return this.userRepository.find();
   }
-  async findById(id: string): Promise<User | undefined> {
-    const user = await this.userRepository.findOneBy({ userId: id });
+  async findById(userId: string): Promise<User | undefined> {
+    const user = await this.userRepository.findOne({
+      where: { userId },
+      relations: ['refreshTokens'], // Include related entities if needed
+    });
     return user ?? undefined;
   }
 
