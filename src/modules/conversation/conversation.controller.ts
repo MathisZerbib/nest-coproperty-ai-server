@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -18,7 +19,6 @@ import {
 import { ConversationService } from './conversation.service';
 import { Conversation } from '../../entity/conversation.entity';
 import { AuthGuard } from '../auth/auth.guard';
-import { Messages } from '@entity/messages.entity';
 
 @ApiTags('Conversations')
 @ApiBearerAuth()
@@ -67,7 +67,7 @@ export class ConversationController {
 
     return conversation;
   }
-  @ApiOperation({ summary: 'Get all conversations by user Id' })
+  @ApiOperation({ summary: 'Get all conversations by user ID' })
   @ApiResponse({
     status: 200,
     description: 'List of conversations for the user',
@@ -82,10 +82,14 @@ export class ConversationController {
     description: 'User not found.',
   })
   @UseGuards(AuthGuard)
-  @Get(':userId')
+  @Get()
   async getAllConversationsByUserId(
-    @Param('userId') userId: string,
+    @Req() req: { user: { sub: string } }, // Extract user from the request
   ): Promise<Conversation[]> {
+    const userId = req.user.sub; // Get userId from the JWT payload
+    if (!userId) {
+      throw new Error('Unauthorized: User ID not found in token');
+    }
     return this.conversationService.getAllConversationsByUserId(userId);
   }
 
@@ -140,21 +144,18 @@ export class ConversationController {
             'The ID of the copropriety associated with the conversation',
           example: '123e4567-e89b-12d3-a456-426614174000',
         },
-        userId: {
-          type: 'string',
-          description: 'The ID of the user creating the conversation',
-          example: '276f9fd7-4707-429f-aef1-abd366b48f1b',
-        },
       },
     },
   })
   @UseGuards(AuthGuard)
   @Post()
   async create(
+    @Req() req: { user: { sub: string } }, // Extract user from the request
     @Body() conversationData: Partial<Conversation>,
   ): Promise<Conversation> {
-    if (!conversationData.userId) {
-      throw new Error('userId is required in the request body');
+    const userId = req.user.sub; // Get userId from the JWT payload
+    if (!userId) {
+      throw new Error('Unauthorized: User ID not found in token');
     }
     if (!conversationData.title) {
       throw new Error('title is required in the request body');
@@ -162,7 +163,7 @@ export class ConversationController {
     if (!conversationData.copropriety_id) {
       throw new Error('copropriety_id is required in the request body');
     }
-    return this.conversationService.create(conversationData);
+    return this.conversationService.create({ ...conversationData, userId });
   }
 
   /// PUT CONVERSATION
