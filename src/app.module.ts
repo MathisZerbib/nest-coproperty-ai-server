@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { MessagesModule } from './modules/chat/messages.module';
+import { MessagesModule } from './modules/messages/messages.module';
 import { ConversationModule } from './modules/conversation/conversation.module';
 import { CoproprieteModule } from './modules/copropriete/copropriete.module';
 import { UploadModule } from './modules/upload/upload.module';
@@ -22,7 +22,7 @@ import { ConfigModule } from '@nestjs/config';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       migrations: ['src/migrations/*.ts'],
       synchronize: true,
-      logging: true,
+      // logging: true,
     }),
     ScheduleModule.forRoot(),
     AuthModule,

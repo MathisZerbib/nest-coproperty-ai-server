@@ -67,6 +67,7 @@ export class ConversationController {
 
     return conversation;
   }
+  // GET ALL CONVERSATIONS BY USER ID
   @ApiOperation({ summary: 'Get all conversations by user ID' })
   @ApiResponse({
     status: 200,
@@ -86,7 +87,7 @@ export class ConversationController {
   async getAllConversationsByUserId(
     @Req() req: { user: { sub: string } }, // Extract user from the request
   ): Promise<Conversation[]> {
-    const userId = req.user.sub; // Get userId from the JWT payload
+    const userId = req.user.sub;
     if (!userId) {
       throw new Error('Unauthorized: User ID not found in token');
     }

@@ -12,7 +12,6 @@ export class CoproprieteService {
 
   // Retrieve all coproprietes for a specific user
   async getCoproprietes(userId: string): Promise<Copropriete[]> {
-    console.log('Fetching coproprietes for user:', userId);
     let coproprietes: Copropriete[];
     try {
       coproprietes = await this.coproprieteRepository.find({
@@ -23,7 +22,6 @@ export class CoproprieteService {
       console.error('Error fetching coproprietes:', error);
       throw new NotFoundException('Coproprietes not found');
     }
-    console.log('Coproprietes found:', coproprietes);
     return coproprietes;
   }
 

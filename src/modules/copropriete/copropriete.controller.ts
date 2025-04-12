@@ -45,7 +45,6 @@ export class CoproprieteController {
     @Req() req: { user: { sub: string } },
   ): Promise<Copropriete[]> {
     const userId: string = req.user.sub;
-    console.log('User ID from request:', userId);
     if (!userId) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
