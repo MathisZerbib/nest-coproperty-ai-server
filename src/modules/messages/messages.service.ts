@@ -123,7 +123,7 @@ Instructions :
 - Soyez clair, direct et concis (1 à 2 phrases maximum)  
 - Donnez uniquement des informations pertinentes et factuelles  
 - Formulez toujours une phrase complète  
-- N’utilisez ni code, ni markdown, ni séparateurs (\`\`\`)  
+- N’utilisez ni code, ni markdown, ni séparateurs (\`\`\`)
 - Ne mentionnez jamais que vous êtes une IA, un robot, un modèle ou un assistant  
 - Ne répondez jamais par « Je ne sais pas » ou toute variation similaire  
 - Aucune excuse, humour, commentaire personnel, politique, religieux ou offensant  
@@ -142,6 +142,8 @@ Instructions :
     response = response.replace(/\n\s*\[\/INST\]/g, ''); // Remove actual newlines
     response = response.replace(/\\n/g, ' '); // Replace escaped newlines with spaces
     response = response.replace(/\s+/g, ' '); // Normalize multiple spaces
+    response = response.replace('```', ''); // Remove any remaining code blocks
+    response = response.replace(/\[\/INST\]/g, ''); // Remove any remaining markdown
     return response.trim();
   }
 

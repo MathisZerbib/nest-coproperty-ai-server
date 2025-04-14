@@ -3,12 +3,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conversation } from '../../entity/conversation.entity';
+import { Messages } from '../../entity/messages.entity';
 
 @Injectable()
 export class ConversationService {
   constructor(
     @InjectRepository(Conversation)
     private readonly conversationRepository: Repository<Conversation>,
+    @InjectRepository(Messages)
+    private readonly messagesRepository: Repository<Messages>,
   ) {}
 
   async findAll(): Promise<Conversation[]> {
@@ -17,9 +20,29 @@ export class ConversationService {
 
   async create(conversationData: Partial<Conversation>): Promise<Conversation> {
     console.log('Creating conversation with data:', conversationData);
+
+    // Create the conversation
     const conversation = this.conversationRepository.create(conversationData);
-    console.log('Created conversation:', conversation);
-    return this.conversationRepository.save(conversation);
+    const savedConversation =
+      await this.conversationRepository.save(conversation);
+
+    // Create the first bot message
+    const botMessage = this.messagesRepository.create({
+      conversation: savedConversation, // Associate the conversation
+      content: "Bonjour, comment puis-je vous aider aujourd'hui ?",
+      role: 'assistant',
+      userId: conversationData.userId, // Assuming userId is part of conversationData
+      sequence_number: 1,
+    });
+    await this.messagesRepository.save(botMessage);
+
+    console.log(
+      'Created conversation with initial bot message:',
+      savedConversation,
+    );
+
+    // Return the saved conversation (messages will be loaded via relations if needed)
+    return savedConversation;
   }
 
   async getRecentConversations(): Promise<Conversation[]> {
