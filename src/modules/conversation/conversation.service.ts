@@ -19,8 +19,6 @@ export class ConversationService {
   }
 
   async create(conversationData: Partial<Conversation>): Promise<Conversation> {
-    console.log('Creating conversation with data:', conversationData);
-
     // Create the conversation
     const conversation = this.conversationRepository.create(conversationData);
     const savedConversation =
@@ -35,11 +33,6 @@ export class ConversationService {
       sequence_number: 1,
     });
     await this.messagesRepository.save(botMessage);
-
-    console.log(
-      'Created conversation with initial bot message:',
-      savedConversation,
-    );
 
     // Return the saved conversation (messages will be loaded via relations if needed)
     return savedConversation;
