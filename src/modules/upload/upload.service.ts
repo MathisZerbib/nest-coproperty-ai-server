@@ -324,7 +324,8 @@ export class UploadService {
           type: file.mimetype,
         });
         // Ingest the file into PrivateGPT
-        const ingestResponse = await this.privateGptClient.ingestion.ingestFile(fileObject);
+        const ingestResponse =
+          await this.privateGptClient.ingestion.ingestFile(fileObject);
         const ingestedFileDocId = ingestResponse.data[0].docId;
 
         console.log(
