@@ -5,6 +5,8 @@ import {
   UseInterceptors,
   Body,
   UseGuards,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -77,24 +79,36 @@ export class UploadController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body('metadata') metadata: string,
-    @Body('processWithPinecone') processWithPinecone: string,
+    @Body('processWithPrivateGPT') processWithPrivateGPT: string,
   ): Promise<{ message: string }> {
     // Validate the file
     if (!file) {
-      throw new Error('No file uploaded. Please upload a valid PDF file.');
+      throw new HttpException(
+        'No file uploaded. Please upload a valid PDF file.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    // Process the file with Pinecone or just upload it
-    let message: string;
-    if (processWithPinecone === 'true') {
-      // Process the file with Pinecone
-      message = await this.uploadService.processFile(file, metadata);
-    } else {
-      // Just upload the file without processing
-      message = await this.uploadService.uploadFile(file);
-    }
+    try {
+      // Process the file with PrivateGPT or just upload it
+      let message: string;
+      if (processWithPrivateGPT === 'true') {
+        message = await this.uploadService.processFile(file);
+      } else {
+        message = await this.uploadService.uploadFile(file);
+      }
 
-    return { message };
+      return { message };
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error in uploadFile:', error.message);
+      } else {
+        console.error('Error in uploadFile:', error);
+      }
+      throw new HttpException(
+        'Failed to upload and process the file. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
