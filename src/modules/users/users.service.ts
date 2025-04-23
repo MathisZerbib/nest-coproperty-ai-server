@@ -29,7 +29,7 @@ export class UsersService {
   async findById(userId: string): Promise<User | undefined> {
     const user = await this.userRepository.findOne({
       where: { userId },
-      relations: ['refreshTokens'], // Include related entities if needed
+      relations: ['refreshTokens'],
     });
     return user ?? undefined;
   }

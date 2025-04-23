@@ -5,6 +5,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -28,7 +29,6 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
   async findById(@Param('id') id: string): Promise<User | undefined> {
-    console.log('findById', id);
     return await this.usersService.findById(id);
   }
 
@@ -53,12 +53,13 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @Post(':id')
+  @Put(':id')
   async updateUser(
     @Param('id') id: string,
     @Body() user: Partial<User>,
   ): Promise<User | undefined> {
-    const existingUser = await this.usersService.findOne(id);
+    console.log('updateUser', id, user);
+    const existingUser = await this.usersService.findById(id);
     if (!existingUser) {
       throw new NotFoundException('User not found');
     }

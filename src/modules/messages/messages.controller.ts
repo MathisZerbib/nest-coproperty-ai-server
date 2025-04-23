@@ -100,62 +100,6 @@ export class MessagesController {
       },
     },
   })
-  // @UseGuards(AuthGuard)
-  // @Post('create')
-  // async createMessage(@Body() message: Partial<Messages>): Promise<Messages> {
-  //   return this.messagesService.createMessage(message);
-  // }
-
-  // @ApiOperation({
-  //   summary: 'Ask a question to the assistant',
-  //   description:
-  //     'Send a question to the assistant and receive a response. The question is stored in the conversation along with the assistant’s reply.',
-  // })
-  // @ApiResponse({
-  //   status: 201,
-  //   description:
-  //     'The question has been successfully processed, and the assistant’s response has been saved.',
-  //   type: Messages,
-  // })
-  // @ApiResponse({
-  //   status: 400,
-  //   description:
-  //     'Bad request. Missing or invalid parameters in the request body.',
-  // })
-  // @ApiResponse({
-  //   status: 404,
-  //   description:
-  //     'Conversation not found. The provided conversation ID does not exist.',
-  // })
-  // @ApiResponse({
-  //   status: 500,
-  //   description: 'Internal server error. An unexpected error occurred.',
-  // })
-  // @ApiBody({
-  //   description: 'Details of the question to ask the assistant.',
-  //   required: true,
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       conversationId: {
-  //         type: 'string',
-  //         description:
-  //           'The ID of the conversation to which the question belongs.',
-  //         example: '123e4567-e89b-12d3-a456-426614174000',
-  //       },
-  //       userId: {
-  //         type: 'string',
-  //         description: 'The ID of the user asking the question.',
-  //         example: '456e7890-e12b-34d5-f678-526714174111',
-  //       },
-  //       question: {
-  //         type: 'string',
-  //         description: 'The question to ask the assistant.',
-  //         example: 'What is the capital of France?',
-  //       },
-  //     },
-  //   },
-  // })
   @UseGuards(AuthGuard)
   @Post('ask')
   async askQuestion(
