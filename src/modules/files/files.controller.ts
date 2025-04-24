@@ -6,6 +6,7 @@ import {
   UseGuards,
   HttpException,
   HttpStatus,
+  Delete,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthGuard } from '../auth/auth.guard';
@@ -76,6 +77,47 @@ export class FilesController {
       });
     } catch (error) {
       console.error('Error serving file:', error);
+      throw error;
+    }
+  }
+
+  @ApiOperation({ summary: 'Get metadata by document ID' })
+  @ApiParam({
+    name: 'docId',
+    type: String,
+    description: 'The document ID used to locate the metadata',
+  })
+  @ApiResponse({ status: 200, description: 'Metadata retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Metadata not found' })
+  @ApiResponse({ status: 400, description: 'Invalid document ID' })
+  @UseGuards(AuthGuard)
+  @Get('metadata/:docId')
+  getMetadataByDocId(@Param('docId') docId: string): Record<string, any> {
+    try {
+      return this.filesService.findMetadataByDocId(docId);
+    } catch (error) {
+      console.error('Error retrieving metadata:', error);
+      throw error;
+    }
+  }
+
+  @ApiOperation({ summary: 'Delete a file by document ID' })
+  @ApiParam({
+    name: 'docId',
+    type: String,
+    description: 'The document ID used to locate the file',
+  })
+  @ApiResponse({ status: 200, description: 'File deleted successfully' })
+  @ApiResponse({ status: 404, description: 'File not found' })
+  @ApiResponse({ status: 400, description: 'Invalid document ID' })
+  @UseGuards(AuthGuard)
+  @Delete('files/:docId')
+  deleteFileByDocId(@Param('docId') docId: string): { message: string } {
+    try {
+      this.filesService.deleteDocumentByDocId(docId);
+      return { message: 'File deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting file:', error);
       throw error;
     }
   }

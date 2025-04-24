@@ -45,6 +45,7 @@ export class UploadService {
   async processFile(
     file: Express.Multer.File,
     folder: 'document' | 'legal' | 'resident',
+    metadata?: string,
   ): Promise<{ message: string; fileUrl: string; docId: string }> {
     this.validateFile(file);
     const safeFileName = generateFileName(file);
@@ -78,12 +79,27 @@ export class UploadService {
           `File ingested into PrivateGPT with doc ID: ${ingestedFileDocId}`,
         );
 
-        // Save metadata to a log file (optional)
+        // Parse metadata if provided
+        let parsedMetadata: { type?: string } = {};
+        if (metadata) {
+          try {
+            parsedMetadata = JSON.parse(metadata) as { type?: string };
+          } catch (error) {
+            console.error('Error parsing metadata:', error);
+            throw new HttpException(
+              'Invalid metadata format',
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+        }
+
+        // Save metadata to a log file
         const metadataLogPath = path.join(uploadDir, 'metadata-log.json');
         const metadataEntry = {
           fileName: safeFileName,
           docId: ingestedFileDocId,
           fileUrl: `/uploads/${folder}/${safeFileName}`,
+          type: parsedMetadata.type || 'unknown', // Correctly access the type field
         };
         const existingMetadata: Array<Record<string, any>> = fs.existsSync(
           metadataLogPath,
@@ -104,8 +120,8 @@ export class UploadService {
           fileUrl: `/uploads/${folder}/${safeFileName}`,
           docId: ingestedFileDocId,
         };
-      } catch {
-        console.error('Error during ingestion into PrivateGPT:');
+      } catch (error) {
+        console.error('Error during ingestion into PrivateGPT:', error);
         throw new HttpException(
           'Failed to ingest file into PrivateGPT. Please check the server logs for more details.',
           HttpStatus.INTERNAL_SERVER_ERROR,
