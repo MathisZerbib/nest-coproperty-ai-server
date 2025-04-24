@@ -20,7 +20,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CoproprieteService } from './copropriete.service';
-import { Copropriete } from '../../entity/copropriete.entity';
+import { Copropriete } from '../../entities/copropriete.entity';
 import { CoproprieteDto } from './copropriete.dto';
 import { AuthGuard } from '../auth/auth.guard';
 

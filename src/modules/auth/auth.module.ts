@@ -5,7 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { jwtConstants } from './constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshToken } from '../../entity/refresh-token.entity';
+import { RefreshToken } from '../../entities/refresh-token.entity';
 import { TokenCleanupService } from './token-cleanup.service'; // Import the service
 
 @Module({

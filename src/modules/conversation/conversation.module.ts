@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Conversation } from '../../entity/conversation.entity';
-import { Messages } from '../../entity/messages.entity'; // Import Messages entity
+import { Conversation } from '../../entities/conversation.entity';
+import { Messages } from '../../entities/messages.entity'; // Import Messages entity
 import { ConversationController } from './conversation.controller';
 import { ConversationService } from './conversation.service';
 

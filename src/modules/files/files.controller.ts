@@ -19,6 +19,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import * as path from 'path';
+import { Metadata } from '../../entities/metadata.entity';
 
 @ApiTags('Files')
 @ApiBearerAuth()
@@ -33,24 +34,16 @@ export class FilesController {
     description: 'The document ID used to locate the file',
   })
   @ApiResponse({ status: 200, description: 'File served successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({
-    status: 500,
-    description: 'Failed to serve the file. Please try again later.',
-  })
+  @ApiResponse({ status: 404, description: 'File not found' })
+  @ApiResponse({ status: 500, description: 'Failed to serve the file' })
   @UseGuards(AuthGuard)
   @Get(':docId')
-  serveFileByDocId(@Param('docId') docId: string, @Res() res: Response): void {
+  async serveFileByDocId(
+    @Param('docId') docId: string,
+    @Res() res: Response,
+  ): Promise<void> {
     try {
-      const filePath = this.filesService.findFilePathByDocId(docId);
-
-      if (!filePath) {
-        console.error(`File not found for document ID: ${docId}`);
-        throw new HttpException(
-          `File not found for document ID: ${docId}`,
-          HttpStatus.NOT_FOUND,
-        );
-      }
+      const filePath = await this.filesService.findFilePathByDocId(docId);
 
       const fileExtension = path.extname(filePath).toLowerCase();
       let contentType = 'application/octet-stream'; // Default
@@ -92,9 +85,9 @@ export class FilesController {
   @ApiResponse({ status: 400, description: 'Invalid document ID' })
   @UseGuards(AuthGuard)
   @Get('metadata/:docId')
-  getMetadataByDocId(@Param('docId') docId: string): Record<string, any> {
+  async getMetadataByDocId(@Param('docId') docId: string): Promise<Metadata> {
     try {
-      return this.filesService.findMetadataByDocId(docId);
+      return await this.filesService.findMetadataByDocId(docId);
     } catch (error) {
       console.error('Error retrieving metadata:', error);
       throw error;
@@ -111,10 +104,12 @@ export class FilesController {
   @ApiResponse({ status: 404, description: 'File not found' })
   @ApiResponse({ status: 400, description: 'Invalid document ID' })
   @UseGuards(AuthGuard)
-  @Delete('files/:docId')
-  deleteFileByDocId(@Param('docId') docId: string): { message: string } {
+  @Delete(':docId')
+  async deleteFileByDocId(
+    @Param('docId') docId: string,
+  ): Promise<{ message: string }> {
     try {
-      this.filesService.deleteDocumentByDocId(docId);
+      await this.filesService.deleteDocumentByDocId(docId);
       return { message: 'File deleted successfully' };
     } catch (error) {
       console.error('Error deleting file:', error);

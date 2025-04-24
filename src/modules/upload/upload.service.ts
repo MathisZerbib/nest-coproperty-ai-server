@@ -3,12 +3,20 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { generateFileName } from './constants';
 import { PrivategptApiClient } from 'privategpt-sdk-node';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Metadata } from '../../entities/metadata.entity';
 
 @Injectable()
 export class UploadService {
   private readonly privateGptClient = new PrivategptApiClient({
     environment: 'http://localhost:8001', // PrivateGPT API endpoint
   });
+
+  constructor(
+    @InjectRepository(Metadata)
+    private readonly metadataRepository: Repository<Metadata>,
+  ) {}
 
   // Helper method to validate the file
   private validateFile(file: Express.Multer.File): void {
@@ -53,7 +61,6 @@ export class UploadService {
     console.log(`Processing file: ${safeFileName}`);
 
     try {
-      // Ensure the folder exists
       const uploadDir = path.join(__dirname, `../../../uploads/${folder}`);
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -94,26 +101,14 @@ export class UploadService {
           }
         }
 
-        // Save metadata to a log file
-        const metadataLogPath = path.join(uploadDir, 'metadata-log.json');
-        const metadataEntry = {
+        // Save metadata to the database
+        const metadataEntry = this.metadataRepository.create({
           fileName: safeFileName,
           docId: ingestedFileDocId,
-          fileUrl: `/uploads/${folder}/${safeFileName}`,
-          type: parsedMetadata.type || 'unknown', // Correctly access the type field
-        };
-        const existingMetadata: Array<Record<string, any>> = fs.existsSync(
-          metadataLogPath,
-        )
-          ? (JSON.parse(
-              await fs.promises.readFile(metadataLogPath, 'utf8'),
-            ) as Array<Record<string, any>>)
-          : [];
-        existingMetadata.push(metadataEntry);
-        await fs.promises.writeFile(
-          metadataLogPath,
-          JSON.stringify(existingMetadata, null, 2),
-        );
+          fileUrl: `${folder}/${safeFileName}`, // Fix the fileUrl construction
+          type: parsedMetadata.type || 'unknown',
+        });
+        await this.metadataRepository.save(metadataEntry);
 
         // Return the file URL and doc ID
         return {

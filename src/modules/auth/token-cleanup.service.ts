@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { Repository, LessThan } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RefreshToken } from '../../entity/refresh-token.entity';
+import { RefreshToken } from '../../entities/refresh-token.entity';
 
 @Injectable()
 export class TokenCleanupService {

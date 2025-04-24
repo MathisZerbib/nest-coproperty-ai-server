@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { SignInEntity } from '../../entity/sign-in.entity';
-import { SignUpEntity } from '../../entity/sign-up.entity';
+import { SignInEntity } from '../../entities/sign-in.entity';
+import { SignUpEntity } from '../../entities/sign-up.entity';
 import { AuthGuard } from './auth.guard';
 
 @ApiTags('Auth')

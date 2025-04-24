@@ -16,7 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/auth.guard';
-import { User } from '../../entity/user.entity';
+import { User } from '../../entities/user.entity';
 
 @ApiTags('Users') // Group routes under "Users" in Swagger
 @ApiBearerAuth() // Requires JWT Bearer token

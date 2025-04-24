@@ -7,8 +7,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { MessagesService } from './messages.service';
-import { Conversation } from '../../entity/conversation.entity';
-import { Messages } from '../../entity/messages.entity';
+import { Conversation } from '../../entities/conversation.entity';
+import { Messages } from '../../entities/messages.entity';
 import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Messages')

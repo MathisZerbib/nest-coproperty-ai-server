@@ -5,8 +5,6 @@ import {
   UseInterceptors,
   Body,
   UseGuards,
-  HttpException,
-  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -87,41 +85,7 @@ export class UploadController {
     @Body('folder') folder: 'document' | 'legal' | 'resident',
     @Body('processWithPrivateGPT') processWithPrivateGPT: string,
     @Body('metadata') metadata?: string,
-  ): Promise<{ message: string; fileUrl: string }> {
-    // Validate the folder
-    if (!['document', 'legal', 'resident'].includes(folder)) {
-      throw new HttpException(
-        'Invalid folder. Allowed values are "document", "legal", or "resident".',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    // Validate the file
-    if (!file) {
-      throw new HttpException(
-        'No file uploaded. Please upload a valid PDF file.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    try {
-      // Process the file with PrivateGPT or just upload it
-      if (processWithPrivateGPT === 'true') {
-        return await this.uploadService.processFile(file, folder, metadata);
-      } else {
-        const message = await this.uploadService.uploadFile(file);
-        return { message, fileUrl: `/uploads/${folder}/${file.originalname}` };
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error('Error in uploadFile:', error.message);
-      } else {
-        console.error('Error in uploadFile:', error);
-      }
-      throw new HttpException(
-        'Failed to upload and process the file. Please try again later.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  ): Promise<{ message: string; fileUrl: string; docId: string }> {
+    return await this.uploadService.processFile(file, folder, metadata);
   }
 }
