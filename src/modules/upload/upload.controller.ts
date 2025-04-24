@@ -86,6 +86,7 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
     @Body('folder') folder: 'document' | 'legal' | 'resident',
     @Body('processWithPrivateGPT') processWithPrivateGPT: string,
+    @Body('metadata') metadata?: string,
   ): Promise<{ message: string; fileUrl: string }> {
     // Validate the folder
     if (!['document', 'legal', 'resident'].includes(folder)) {
@@ -106,7 +107,7 @@ export class UploadController {
     try {
       // Process the file with PrivateGPT or just upload it
       if (processWithPrivateGPT === 'true') {
-        return await this.uploadService.processFile(file, folder);
+        return await this.uploadService.processFile(file, folder, metadata);
       } else {
         const message = await this.uploadService.uploadFile(file);
         return { message, fileUrl: `/uploads/${folder}/${file.originalname}` };

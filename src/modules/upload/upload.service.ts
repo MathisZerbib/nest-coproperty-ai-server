@@ -81,6 +81,7 @@ export class UploadService {
 
         // Parse metadata if provided
         let parsedMetadata: { type?: string } = {};
+        console.log('Parsing metadata:', metadata);
         if (metadata) {
           try {
             parsedMetadata = JSON.parse(metadata) as { type?: string };
