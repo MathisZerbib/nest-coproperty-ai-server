@@ -76,7 +76,7 @@ export class UsersController {
     @Body('password') password: string,
     @Body('oldPassword') oldPassword: string,
   ): Promise<User | undefined> {
-    const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }

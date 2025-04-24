@@ -55,7 +55,7 @@ export class UsersService {
       return undefined;
     }
 
-    // Assuming you have a method to compare passwords
+    // Compare the old password with the hashed password in the database
     const isPasswordValid = await this.comparePasswords(
       oldPassword,
       user.password,
@@ -64,7 +64,11 @@ export class UsersService {
       return undefined;
     }
 
-    user.password = newPassword;
+    // Hash the new password before saving it
+    const bcrypt = await import('bcrypt');
+    const hashedPassword = await bcrypt.hash(newPassword, 10); // 10 is the salt rounds
+
+    user.password = hashedPassword;
     return await this.userRepository.save(user);
   }
 }

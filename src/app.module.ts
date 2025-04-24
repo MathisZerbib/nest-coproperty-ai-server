@@ -8,6 +8,7 @@ import { ConversationModule } from './modules/conversation/conversation.module';
 import { CoproprieteModule } from './modules/copropriete/copropriete.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { ConfigModule } from '@nestjs/config';
+import { FilesModule } from './modules/files/files.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ConfigModule } from '@nestjs/config';
     ConversationModule,
     CoproprieteModule,
     UploadModule,
+    FilesModule,
   ],
 })
 export class AppModule {}
