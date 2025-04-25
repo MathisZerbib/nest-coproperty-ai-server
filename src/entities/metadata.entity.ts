@@ -16,4 +16,7 @@ export class Metadata {
 
   @Column()
   type: string;
+
+  @Column({ type: 'uuid' })
+  userId: string;
 }

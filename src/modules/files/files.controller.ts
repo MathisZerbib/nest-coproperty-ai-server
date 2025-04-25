@@ -54,10 +54,13 @@ export class FilesController {
       } else if (fileExtension === '.docx') {
         contentType =
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      } else if (fileExtension === '.txt') {
-        contentType = 'text/plain';
+      } else {
+        console.warn(`Unsupported file type: ${fileExtension}`);
+        throw new HttpException(
+          'Unsupported file type',
+          HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+        );
       }
-
       res.setHeader('Content-Type', contentType);
       res.sendFile(filePath, (err) => {
         if (err) {

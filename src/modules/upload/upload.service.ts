@@ -54,6 +54,8 @@ export class UploadService {
     file: Express.Multer.File,
     folder: 'document' | 'legal' | 'resident',
     metadata?: string,
+    userId?: string, // Accept userId as a parameter
+    processWithPrivateGPT?: boolean,
   ): Promise<{ message: string; fileUrl: string; docId: string }> {
     this.validateFile(file);
     const safeFileName = generateFileName(file);
@@ -78,14 +80,16 @@ export class UploadService {
         });
 
         // Ingest the file into PrivateGPT
-        const ingestResponse =
-          await this.privateGptClient.ingestion.ingestFile(fileObject);
-        const ingestedFileDocId = ingestResponse.data[0].docId;
+        let ingestedFileDocId = '';
+        if (processWithPrivateGPT) {
+          const ingestResponse =
+            await this.privateGptClient.ingestion.ingestFile(fileObject);
+          ingestedFileDocId = ingestResponse.data[0]?.docId || '';
 
-        console.log(
-          `File ingested into PrivateGPT with doc ID: ${ingestedFileDocId}`,
-        );
-
+          console.log(
+            `File ingested into PrivateGPT with doc ID: ${ingestedFileDocId}`,
+          );
+        }
         // Parse metadata if provided
         let parsedMetadata: { type?: string } = {};
         console.log('Parsing metadata:', metadata);
@@ -104,9 +108,10 @@ export class UploadService {
         // Save metadata to the database
         const metadataEntry = this.metadataRepository.create({
           fileName: safeFileName,
-          docId: ingestedFileDocId,
+          docId: ingestedFileDocId == '' ? 'not_ingested' : ingestedFileDocId,
           fileUrl: `${folder}/${safeFileName}`, // Fix the fileUrl construction
           type: parsedMetadata.type || 'unknown',
+          userId: userId || 'default-user-id', // Save the userId
         });
         await this.metadataRepository.save(metadataEntry);
 
@@ -114,7 +119,7 @@ export class UploadService {
         return {
           message: `File "${safeFileName}" processed and ingested into PrivateGPT successfully.`,
           fileUrl: `/uploads/${folder}/${safeFileName}`,
-          docId: ingestedFileDocId,
+          docId: ingestedFileDocId == '' ? 'not_ingested' : ingestedFileDocId,
         };
       } catch (error) {
         console.error('Error during ingestion into PrivateGPT:', error);

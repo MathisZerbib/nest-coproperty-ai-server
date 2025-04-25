@@ -3,7 +3,10 @@ import * as path from 'path';
 export const ALLOWED_FOLDERS = ['document', 'legal', 'resident'];
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export const CHUNK_SIZE = 500;
-
+export const ACCEPTED_FILES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
 export const generateFileName = (file: Express.Multer.File) => {
   // Convert original filename to UTF-8
   file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');

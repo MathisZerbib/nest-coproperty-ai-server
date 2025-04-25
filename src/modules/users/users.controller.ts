@@ -58,7 +58,6 @@ export class UsersController {
     @Param('id') id: string,
     @Body() user: Partial<User>,
   ): Promise<User | undefined> {
-    console.log('updateUser', id, user);
     const existingUser = await this.usersService.findById(id);
     if (!existingUser) {
       throw new NotFoundException('User not found');

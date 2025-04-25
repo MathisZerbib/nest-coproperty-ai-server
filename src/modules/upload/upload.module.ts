@@ -5,9 +5,15 @@ import { ConfigModule } from '@nestjs/config';
 import { PineconeModule } from '../pinecone/pinecone.module';
 import { Metadata } from '../../entities/metadata.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [ConfigModule, PineconeModule, TypeOrmModule.forFeature([Metadata])],
+  imports: [
+    ConfigModule,
+    PineconeModule,
+    TypeOrmModule.forFeature([Metadata]),
+    UsersModule,
+  ],
   controllers: [UploadController],
   providers: [UploadService],
 })

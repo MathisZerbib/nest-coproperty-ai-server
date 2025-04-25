@@ -5,6 +5,7 @@ import {
   UseInterceptors,
   Body,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -18,7 +19,7 @@ import {
 import { AuthGuard } from '../auth/auth.guard';
 import { UploadService } from './upload.service';
 import { memoryStorage } from 'multer';
-import { MAX_FILE_SIZE } from './constants';
+import { MAX_FILE_SIZE, ACCEPTED_FILES } from './constants';
 
 @ApiTags('Upload')
 @Controller('upload')
@@ -33,7 +34,7 @@ export class UploadController {
       storage: memoryStorage(), // Use memoryStorage to keep the file in memory
       limits: { fileSize: MAX_FILE_SIZE }, // Limit file size
       fileFilter: (_, file, cb) => {
-        if (file.mimetype === 'application/pdf') {
+        if (ACCEPTED_FILES.includes(file.mimetype)) {
           cb(null, true); // Accept PDF files
         } else {
           cb(new Error('Unsupported file type'), false); // Reject other file types
@@ -65,6 +66,10 @@ export class UploadController {
           enum: ['document', 'legal', 'resident'],
           description: 'Folder to upload the file to',
         },
+        userId: {
+          type: 'string',
+          description: 'The ID of the user uploading the file',
+        },
         processWithPinecone: {
           type: 'string',
           enum: ['true', 'false'],
@@ -83,9 +88,21 @@ export class UploadController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body('folder') folder: 'document' | 'legal' | 'resident',
-    @Body('processWithPrivateGPT') processWithPrivateGPT: string,
+    @Body('processWithPrivateGPT') processWithPrivateGPT: boolean,
+    @Req() req: { user: { sub: string } },
     @Body('metadata') metadata?: string,
   ): Promise<{ message: string; fileUrl: string; docId: string }> {
-    return await this.uploadService.processFile(file, folder, metadata);
+    const userId = req.user.sub;
+    if (!userId) {
+      throw new Error('Unauthorized: User ID not found in token');
+    }
+
+    return await this.uploadService.processFile(
+      file,
+      folder,
+      metadata,
+      userId,
+      processWithPrivateGPT,
+    );
   }
 }
