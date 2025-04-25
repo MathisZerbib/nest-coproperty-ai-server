@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
+import { Resident } from './resident.entity';
 
 @Entity()
 export class Copropriete {
@@ -36,6 +38,9 @@ export class Copropriete {
 
   @ManyToOne(() => User, (user) => user.coproprietes, { onDelete: 'CASCADE' })
   user: User;
+
+  @OneToMany(() => Resident, (resident) => resident.coproperty)
+  residents: Resident[];
 
   @CreateDateColumn()
   created_at: Date;

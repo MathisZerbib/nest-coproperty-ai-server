@@ -9,6 +9,8 @@ import { CoproprieteModule } from './modules/copropriete/copropriete.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { ConfigModule } from '@nestjs/config';
 import { FilesModule } from './modules/files/files.module';
+import { ResidentsModule } from './modules/residents/residents.module';
+import { IncidentModule } from './modules/incident/incident.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { FilesModule } from './modules/files/files.module';
     ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
+    ResidentsModule,
+    IncidentModule,
     MessagesModule,
     ConversationModule,
     CoproprieteModule,
