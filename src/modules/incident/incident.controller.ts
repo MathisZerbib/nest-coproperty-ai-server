@@ -6,14 +6,23 @@ import {
   Param,
   Put,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { IncidentsService } from './incident.service';
 import { CreateIncidentDto } from './create-incident.dto';
 import { UpdateIncidentDto } from './update-incident.dto';
 import { Incident } from '@entity/incidents.entity';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Incidents')
+@ApiBearerAuth()
 @Controller('incidents')
 export class IncidentsController {
   constructor(private readonly incidentsService: IncidentsService) {}
@@ -45,6 +54,25 @@ export class IncidentsController {
   @ApiResponse({ status: 404, description: 'Incident not found' })
   async findOne(@Param('id') id: string): Promise<Incident> {
     return this.incidentsService.findOne(id);
+  }
+
+  @Get('resident/:residentId')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Retrieve incidents by resident ID' })
+  @ApiParam({ name: 'residentId', description: 'Resident ID' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'List of incidents for the specified resident retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No incidents found for the specified resident',
+  })
+  async findByResidentId(
+    @Param('residentId') residentId: string,
+  ): Promise<Incident[]> {
+    return this.incidentsService.findByResidentId(residentId);
   }
 
   @Put(':id')

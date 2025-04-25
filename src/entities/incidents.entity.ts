@@ -5,6 +5,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { Resident } from './resident.entity';
 
@@ -29,9 +30,6 @@ export class Incident {
   })
   status: 'urgent' | 'in_progress' | 'resolved';
 
-  @Column({ type: 'varchar', length: 100 })
-  reportedBy: string;
-
   @Column({ type: 'boolean', default: false })
   urgent: boolean;
 
@@ -42,11 +40,18 @@ export class Incident {
     nullable: false,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'resident_id' })
   resident: Resident;
 
   @CreateDateColumn()
-  reportedAt: Date;
+  reported_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
+
+  @Column({ type: 'varchar', length: 100 })
+  reported_by: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  resolved_by: string;
 }

@@ -35,6 +35,20 @@ export class IncidentsService {
     return incident;
   }
 
+  // Retrieve incidents by resident ID
+  async findByResidentId(residentId: string): Promise<Incident[]> {
+    const incidents = await this.incidentsRepository.find({
+      where: { resident: { id: residentId } },
+      relations: ['resident'], // Include related resident
+    });
+
+    if (!incidents || incidents.length === 0) {
+      throw new Error(`No incidents found for resident with ID ${residentId}`);
+    }
+
+    return incidents;
+  }
+
   // Update an incident
   async update(
     id: string,
