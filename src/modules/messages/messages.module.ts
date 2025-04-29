@@ -4,11 +4,10 @@ import { MessagesController } from './messages.controller';
 import { MessagesService } from './messages.service';
 import { Messages } from 'src/entities/messages.entity';
 import { ConversationModule } from '../conversation/conversation.module'; // Import ConversationModule
-import { PineconeService } from '../pinecone/pinecone.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Messages]), ConversationModule],
   controllers: [MessagesController],
-  providers: [MessagesService, PineconeService],
+  providers: [MessagesService],
 })
 export class MessagesModule {}

@@ -43,7 +43,7 @@ export class IncidentsService {
     });
 
     if (!incidents || incidents.length === 0) {
-      throw new Error(`No incidents found for resident with ID ${residentId}`);
+      return [];
     }
 
     return incidents;
