@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { CoproprieteService } from './copropriete.service';
 import { Copropriete } from '../../entities/copropriete.entity';
-import { CoproprieteDto } from './copropriete.dto';
+import { CoproprieteDto } from '../../entities/copropriete.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Coproprietes')

@@ -18,8 +18,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { IncidentsService } from './incident.service';
-import { CreateIncidentDto } from './create-incident.dto';
-import { UpdateIncidentDto } from './update-incident.dto';
+import { CreateIncidentDto } from '../../entities/create-incident.entity';
+import { UpdateIncidentDto } from '../../entities/update-incident.entity';
 import { Incident } from '@entity/incidents.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';

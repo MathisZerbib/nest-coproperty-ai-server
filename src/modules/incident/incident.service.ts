@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateIncidentDto } from './create-incident.dto';
+import { CreateIncidentDto } from '../../entities/create-incident.entity';
 import { Incident } from '@entity/incidents.entity';
-import { UpdateIncidentDto } from './update-incident.dto';
+import { UpdateIncidentDto } from '../../entities/update-incident.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 @Injectable()
