@@ -4,7 +4,8 @@ import { Repository } from 'typeorm';
 import { CreateIncidentDto } from './create-incident.dto';
 import { Incident } from '@entity/incidents.entity';
 import { UpdateIncidentDto } from './update-incident.dto';
-
+import * as fs from 'fs';
+import * as path from 'path';
 @Injectable()
 export class IncidentsService {
   constructor(
@@ -13,8 +14,38 @@ export class IncidentsService {
   ) {}
 
   // Create a new incident
-  async create(createIncidentDto: CreateIncidentDto): Promise<Incident> {
-    const incident = this.incidentsRepository.create(createIncidentDto);
+  async create(
+    createIncidentDto: CreateIncidentDto,
+    file?: Express.Multer.File,
+  ): Promise<Incident> {
+    const { ...incidentData } = createIncidentDto;
+
+    let filePath: string | undefined;
+    if (file) {
+      // Save the file to the file system
+      const uploadDir = path.join(__dirname, '../../../uploads/incident');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const fileFullPath = path.join(uploadDir, fileName);
+      const writeStream = fs.createWriteStream(fileFullPath);
+
+      await new Promise<void>((resolve, reject) => {
+        writeStream.on('finish', resolve);
+        writeStream.on('error', reject);
+        writeStream.end(file.buffer);
+      });
+
+      filePath = `/uploads/incident/${fileName}`;
+    }
+
+    // Create the incident with the file path if provided
+    const incident = this.incidentsRepository.create({
+      ...incidentData,
+      photos: filePath ? [filePath] : [],
+    });
+
     return this.incidentsRepository.save(incident);
   }
 
@@ -60,6 +91,38 @@ export class IncidentsService {
     return updatedIncident;
   }
 
+  // async updateIncidentImage(
+  //   id: string,
+  //   image: Express.Multer.File,
+  // ): Promise<Incident> {
+  //   const incident = await this.findOne(id);
+
+  //   if (!incident) {
+  //     throw new BadRequestException(`Incident with ID ${id} not found`);
+  //   }
+
+  //   // Ensure the upload directory exists
+  //   const uploadDir = path.join(__dirname, '../../../uploads/incident');
+  //   if (!fs.existsSync(uploadDir)) {
+  //     fs.mkdirSync(uploadDir, { recursive: true });
+  //   }
+  //   // Save the image using a stream
+  //   const imagePath = path.join(uploadDir, image.originalname);
+  //   const writeStream = fs.createWriteStream(imagePath);
+  //   await new Promise<void>((resolve, reject) => {
+  //     writeStream.on('finish', resolve);
+  //     writeStream.on('error', (error) => {
+  //       reject(new Error(`Failed to write file: ${error.message}`));
+  //     });
+  //     // Write the file buffer to the stream
+  //     writeStream.end(image.buffer);
+  //   });
+
+  //   // Update the incident with the image path
+  //   const relativePath = `/uploads/incident/${image.originalname}`;
+  //   incident.photos = [...(incident.photos || []), relativePath];
+  //   return this.incidentsRepository.save(incident);
+  // }
   // Delete an incident
   async remove(id: string): Promise<void> {
     const incident = await this.findOne(id);

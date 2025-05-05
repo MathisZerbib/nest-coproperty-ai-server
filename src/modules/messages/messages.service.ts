@@ -74,7 +74,7 @@ export class MessagesService {
             contextFilter: docIds ? { docsIds: docIds } : undefined,
             includeSources: true,
           },
-          { timeoutInSeconds: 10 },
+          { timeoutInSeconds: 30 },
         );
       console.log('Retrieved context:', response.choices[0]?.sources);
       return response.choices[0]?.message?.content || '';

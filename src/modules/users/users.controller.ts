@@ -28,8 +28,12 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User details', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<User | undefined> {
-    return await this.usersService.findById(id);
+  async findById(@Param('id') id: string): Promise<User> {
+    const user = await this.usersService.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   @ApiOperation({ summary: 'Get all users' })
@@ -43,10 +47,12 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User details', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Get(':email')
-  async getUserByEmail(
-    @Param('email') email: string,
-  ): Promise<User | undefined> {
-    return await this.usersService.findOne(email);
+  async getUserByEmail(@Param('email') email: string): Promise<User> {
+    const user = await this.usersService.findOne(email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   @ApiOperation({ summary: 'Update user details' })

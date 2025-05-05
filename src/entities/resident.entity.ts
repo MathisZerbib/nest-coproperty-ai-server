@@ -46,7 +46,7 @@ export class Resident {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'copropertyId' }) // Use camelCase for column name
+  @JoinColumn({ name: 'copropertyId' })
   coproperty: Copropriete;
 
   @Column({
@@ -57,7 +57,7 @@ export class Resident {
   })
   status: 'owner' | 'tenant' | 'both';
 
-  @Column({ name: 'moveInDate', type: 'date', nullable: true }) // Updated camelCase
+  @Column({ name: 'moveInDate', type: 'date', nullable: true })
   moveInDate: Date;
 
   @Column({ name: 'notes', type: 'text', nullable: true })

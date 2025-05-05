@@ -24,6 +24,28 @@ export class Incident {
   location: string;
 
   @Column({
+    enum: [
+      'plumbing',
+      'electrical',
+      'elevator',
+      'common_areas',
+      'complaints',
+      'security',
+      'other',
+    ],
+    type: 'enum',
+    default: 'other',
+  })
+  type:
+    | 'plumbing'
+    | 'electrical'
+    | 'elevator'
+    | 'common_areas'
+    | 'complaints'
+    | 'security'
+    | 'other';
+
+  @Column({
     type: 'enum',
     enum: ['urgent', 'in_progress', 'resolved'],
     default: 'in_progress',

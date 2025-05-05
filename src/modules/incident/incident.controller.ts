@@ -7,6 +7,8 @@ import {
   Put,
   Delete,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -20,6 +22,7 @@ import { CreateIncidentDto } from './create-incident.dto';
 import { UpdateIncidentDto } from './update-incident.dto';
 import { Incident } from '@entity/incidents.entity';
 import { AuthGuard } from '../auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Incidents')
 @ApiBearerAuth()
@@ -28,13 +31,15 @@ export class IncidentsController {
   constructor(private readonly incidentsService: IncidentsService) {}
 
   @Post()
+  @UseInterceptors(FileInterceptor('file')) // Intercept file uploads
   @ApiOperation({ summary: 'Create a new incident' })
   @ApiResponse({ status: 201, description: 'Incident created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   async create(
     @Body() createIncidentDto: CreateIncidentDto,
+    @UploadedFile() file?: Express.Multer.File, // Detect if a file is uploaded
   ): Promise<Incident> {
-    return this.incidentsService.create(createIncidentDto);
+    return this.incidentsService.create(createIncidentDto, file);
   }
 
   @Get()
@@ -55,6 +60,23 @@ export class IncidentsController {
   async findOne(@Param('id') id: string): Promise<Incident> {
     return this.incidentsService.findOne(id);
   }
+
+  // @Patch(':id/image')
+  // @UseGuards(AuthGuard)
+  // @UseInterceptors(FileInterceptor('image'))
+  // @ApiOperation({ summary: 'Update the image of an incident' })
+  // @ApiParam({ name: 'id', description: 'Incident ID' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Incident image updated successfully',
+  // })
+  // @ApiResponse({ status: 404, description: 'Incident not found' })
+  // async updateIncidentImage(
+  //   @Param('id') id: string,
+  //   @UploadedFile() image: Express.Multer.File,
+  // ): Promise<Incident> {
+  //   return await this.incidentsService.updateIncidentImage(id, image);
+  // }
 
   @Get('resident/:residentId')
   @UseGuards(AuthGuard)
