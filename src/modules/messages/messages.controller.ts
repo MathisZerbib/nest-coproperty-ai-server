@@ -132,13 +132,13 @@ export class MessagesController {
   }
 
   @ApiOperation({
-    summary: 'Stream LLM response for a given prompt',
+    summary: 'Stream LLM response for a user question',
     description:
-      'Stream the response from the local LLM (Ollama) for a given prompt. Optionally filter by document IDs.',
+      'Stream the assistant’s response for a user question and save the conversation messages incrementally.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Streaming response from the LLM.',
+    description: 'Streaming response from the assistant.',
   })
   @ApiResponse({
     status: 400,
@@ -156,18 +156,17 @@ export class MessagesController {
       conversationId: string;
       userId: string;
       content: string;
-      docIds?: string[];
     },
     @Res() res: Response,
   ): Promise<void> {
-    const { content, docIds } = body;
+    const { conversationId, userId, content } = body;
 
-    if (!content) {
-      res.status(400).send('Bad Request: Missing content');
+    if (!conversationId || !userId || !content) {
+      res.status(400).send('Bad Request: Missing required parameters');
       return;
     }
 
-    // Set headers for SSE
+    // Set headers for Server-Sent Events (SSE)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -175,21 +174,22 @@ export class MessagesController {
     // Flush headers immediately
     res.flushHeaders?.();
 
-    // Optional: keep-alive ping every 20s
+    // Optional: keep-alive ping every 20 seconds
     const keepAlive = setInterval(() => {
-      res.write(':\n\n'); // Comment line to keep connection open
+      res.write(':\n\n'); // Comment line to keep the connection open
     }, 20000);
 
     try {
-      const stream = await this.messagesService.queryLocalLLMStream(
-        content,
-        docIds,
-      );
+      // Query the local LLM with streaming
+      const stream = await this.messagesService.queryLocalLLMStream(content);
 
       let buffer = ''; // Buffer to store incomplete words or sentences
+      let aggregatedContent = ''; // Variable to store the entire response
 
+      // Stream the assistant's messages incrementally
       for await (const chunk of stream) {
         buffer += chunk; // Append the chunk to the buffer
+        aggregatedContent += chunk; // Append the chunk to the full response
 
         // Check if the buffer ends with a complete sentence or word
         if (
@@ -205,15 +205,38 @@ export class MessagesController {
 
       // Send any remaining content in the buffer
       if (buffer) {
-        res.write(`data: ${buffer}\n\n`);
+        res.write(`${buffer}\n\n`);
       }
 
       clearInterval(keepAlive);
       res.end();
+
+      // Save the full response to the database after streaming
+      const conversation =
+        await this.messagesService.getConversationById(conversationId);
+      const sequenceNumber = conversation.messages.length + 1;
+
+      // Save the user's question
+      await this.messagesService.createMessage({
+        conversation,
+        content: content,
+        role: 'user',
+        userId,
+        sequence_number: sequenceNumber,
+      });
+
+      // Save the full assistant response
+      await this.messagesService.createMessage({
+        conversation,
+        content: aggregatedContent, // Save the full aggregated response
+        role: 'assistant',
+        userId,
+        sequence_number: sequenceNumber + 1,
+      });
     } catch (err) {
       console.error('Streaming error:', err);
       clearInterval(keepAlive);
-      res.end();
+      res.status(500).send('Internal Server Error');
     }
   }
 }
