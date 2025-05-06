@@ -73,14 +73,14 @@ export class Incident {
   @ApiProperty({
     example: 'urgent',
     description: 'Status of the incident',
-    enum: ['urgent', 'in_progress', 'resolved'],
+    enum: ['reported', 'urgent', 'in_progress', 'resolved'],
   })
   @Column({
     type: 'enum',
-    enum: ['urgent', 'in_progress', 'resolved'],
-    default: 'in_progress',
+    enum: ['reported', 'urgent', 'in_progress', 'resolved'],
+    default: 'reported',
   })
-  status: 'urgent' | 'in_progress' | 'resolved';
+  status: 'reported' | 'urgent' | 'in_progress' | 'resolved';
 
   @ApiProperty({ example: true, description: 'Whether the incident is urgent' })
   @Column({ type: 'boolean', default: false })
@@ -109,12 +109,11 @@ export class Incident {
     description: 'The copropriete where the incident occurred',
   })
   @ManyToOne(() => Copropriete, (copropriete) => copropriete.incidents, {
-    nullable: false, // Ensure this is set to false
+    nullable: false,
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'coproprieteId' }) // Ensure the column name matches the database schema
+  @JoinColumn({ name: 'coproprieteId' })
   copropriete: Copropriete;
-
   @ApiProperty({
     example: '2025-04-30T14:43:30.288Z',
     description: 'Date when the incident was reported',

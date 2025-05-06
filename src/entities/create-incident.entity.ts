@@ -66,11 +66,11 @@ export class CreateIncidentDto {
   @ApiProperty({
     example: 'urgent',
     description: 'Status of the incident',
-    enum: ['urgent', 'in_progress', 'resolved'],
+    enum: ['reported', 'urgent', 'in_progress', 'resolved'],
   })
-  @IsEnum(['urgent', 'in_progress', 'resolved'])
+  @IsEnum(['reported', 'urgent', 'in_progress', 'resolved'])
   @IsOptional()
-  status?: 'urgent' | 'in_progress' | 'resolved';
+  status?: 'reported' | 'urgent' | 'in_progress' | 'resolved';
 
   @ApiProperty({
     example: 'John Doe',
