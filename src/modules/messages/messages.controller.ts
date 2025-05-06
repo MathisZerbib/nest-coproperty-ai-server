@@ -1,4 +1,13 @@
-import { Controller, Get, Query, Body, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Body,
+  Post,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
+import { Response } from 'express';
 import {
   ApiOperation,
   ApiResponse,
@@ -120,5 +129,91 @@ export class MessagesController {
       userMessage,
       assistantMessage,
     };
+  }
+
+  @ApiOperation({
+    summary: 'Stream LLM response for a given prompt',
+    description:
+      'Stream the response from the local LLM (Ollama) for a given prompt. Optionally filter by document IDs.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Streaming response from the LLM.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request. Missing or invalid parameters.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error. An unexpected error occurred.',
+  })
+  @UseGuards(AuthGuard)
+  @Post('ask/stream')
+  async streamLLMResponse(
+    @Body()
+    body: {
+      conversationId: string;
+      userId: string;
+      content: string;
+      docIds?: string[];
+    },
+    @Res() res: Response,
+  ): Promise<void> {
+    const { content, docIds } = body;
+
+    if (!content) {
+      res.status(400).send('Bad Request: Missing content');
+      return;
+    }
+
+    // Set headers for SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Flush headers immediately
+    res.flushHeaders?.();
+
+    // Optional: keep-alive ping every 20s
+    const keepAlive = setInterval(() => {
+      res.write(':\n\n'); // Comment line to keep connection open
+    }, 20000);
+
+    try {
+      const stream = await this.messagesService.queryLocalLLMStream(
+        content,
+        docIds,
+      );
+
+      let buffer = ''; // Buffer to store incomplete words or sentences
+
+      for await (const chunk of stream) {
+        buffer += chunk; // Append the chunk to the buffer
+
+        // Check if the buffer ends with a complete sentence or word
+        if (
+          buffer.endsWith(' ') || // Ends with a space
+          buffer.endsWith('.') || // Ends with a period
+          buffer.endsWith('\n') // Ends with a newline
+        ) {
+          // Send the complete buffer to the client
+          res.write(`${buffer}\n\n`);
+          buffer = ''; // Clear the buffer
+        }
+      }
+
+      // Send any remaining content in the buffer
+      if (buffer) {
+        res.write(`data: ${buffer}\n\n`);
+      }
+
+      clearInterval(keepAlive);
+      res.end();
+    } catch (err) {
+      console.error('Streaming error:', err);
+      clearInterval(keepAlive);
+      res.end();
+    }
   }
 }
