@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Resident } from './resident.entity';
+import { Incident } from './incidents.entity';
 
 @Entity()
 export class Copropriete {
@@ -77,8 +78,15 @@ export class Copropriete {
     type: () => [Resident],
     description: 'The residents of the copropriete',
   })
-  @OneToMany(() => Resident, (resident) => resident.coproperty)
+  @OneToMany(() => Resident, (resident) => resident.copropertyId)
   residents: Resident[];
+
+  @ApiProperty({
+    type: () => [Incident],
+    description: 'The incidents associated with the copropriete',
+  })
+  @OneToMany(() => Incident, (incident) => incident.copropriete)
+  incidents: Incident[];
 
   @ApiProperty({
     example: '2025-05-01T12:00:00.000Z',

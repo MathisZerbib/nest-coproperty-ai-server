@@ -78,7 +78,7 @@ export class Resident {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'copropertyId' })
-  coproperty: Copropriete;
+  copropertyId: Copropriete;
 
   @ApiProperty({
     example: 'tenant',

@@ -14,7 +14,7 @@ import { TokenCleanupService } from './token-cleanup.service'; // Import the ser
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '15m' }, // Access token valid for 15 minutes
+      signOptions: { expiresIn: '1h' },
     }),
     TypeOrmModule.forFeature([RefreshToken]),
   ],

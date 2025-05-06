@@ -18,7 +18,7 @@ export class IncidentsService {
     createIncidentDto: CreateIncidentDto,
     file?: Express.Multer.File,
   ): Promise<Incident> {
-    const { ...incidentData } = createIncidentDto;
+    const { residentId, coproprieteId, ...incidentData } = createIncidentDto;
 
     let filePath: string | undefined;
     if (file) {
@@ -44,6 +44,8 @@ export class IncidentsService {
     const incident = this.incidentsRepository.create({
       ...incidentData,
       photos: filePath ? [filePath] : [],
+      resident: { id: residentId },
+      copropriete: { id: coproprieteId },
     });
 
     return this.incidentsRepository.save(incident);
@@ -76,6 +78,14 @@ export class IncidentsService {
     if (!incidents || incidents.length === 0) {
       return [];
     }
+
+    return incidents;
+  }
+  async findByCoproprieteId(coproprieteId: string): Promise<Incident[]> {
+    const incidents = await this.incidentsRepository.find({
+      where: { copropriete: { id: coproprieteId } },
+      relations: ['resident'], // Include related resident
+    });
 
     return incidents;
   }

@@ -17,6 +17,10 @@ export class ResidentsService {
 
   // Create a new resident
   async create(residentData: Partial<Resident>): Promise<Resident> {
+    console.log('Creating resident:', residentData);
+    if (!residentData || !residentData.copropertyId) {
+      throw new Error('Copropriete ID is required');
+    }
     const resident = this.residentsRepository.create(residentData);
     return this.residentsRepository.save(resident);
   }
@@ -28,6 +32,19 @@ export class ResidentsService {
       throw new Error(`Resident with ID ${id} not found`);
     }
     return resident;
+  }
+  // Retrieve all residents for a specific copropriete
+  async findByCopropriete(coproprieteId: string): Promise<Resident[]> {
+    if (!coproprieteId) {
+      throw new Error('Copropriete ID is required');
+    }
+    const residents = await this.residentsRepository.find({
+      where: { copropertyId: { id: coproprieteId } },
+    });
+    if (!residents || residents.length === 0) {
+      throw new Error(`No residents found for Copropriete ID ${coproprieteId}`);
+    }
+    return residents;
   }
 
   // Update a resident

@@ -27,6 +27,7 @@ import { AuthGuard } from '../auth/auth.guard';
 @ApiTags('Coproprietes')
 @ApiBearerAuth()
 @Controller('coproprietes')
+@UseGuards(AuthGuard)
 export class CoproprieteController {
   constructor(private readonly coproprieteService: CoproprieteService) {}
 

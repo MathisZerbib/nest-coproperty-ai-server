@@ -23,6 +23,7 @@ import { AuthGuard } from '../auth/auth.guard';
 @ApiTags('Conversations')
 @ApiBearerAuth()
 @Controller('conversations')
+@UseGuards(AuthGuard)
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 

@@ -6,13 +6,23 @@ import {
   Param,
   Put,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ResidentsService } from './residents.service';
 import { Resident } from '@entity/resident.entity';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Residents')
+@ApiBearerAuth()
 @Controller('residents')
+@UseGuards(AuthGuard)
 export class ResidentsController {
   constructor(private readonly residentsService: ResidentsService) {}
 
@@ -24,6 +34,20 @@ export class ResidentsController {
   })
   async findAll(): Promise<Resident[]> {
     return this.residentsService.findAll();
+  }
+
+  // Get all residents for a specific copropriete
+  @Get('copropriete/:id')
+  @ApiOperation({
+    summary: 'Retrieve all residents for a specific copropriete',
+  })
+  @ApiParam({ name: 'id', description: 'Copropriete ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of residents for the specified copropriete',
+  })
+  async findByCopropriete(@Param('id') id: string): Promise<Resident[]> {
+    return this.residentsService.findByCopropriete(id);
   }
 
   @Post()

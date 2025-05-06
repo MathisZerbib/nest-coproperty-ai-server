@@ -9,6 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Resident } from './resident.entity';
+import { Copropriete } from './copropriete.entity';
 
 @Entity('incidents')
 export class Incident {
@@ -100,8 +101,19 @@ export class Incident {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'resident_id' })
+  @JoinColumn({ name: 'residentId' })
   resident: Resident;
+
+  @ApiProperty({
+    type: () => Copropriete,
+    description: 'The copropriete where the incident occurred',
+  })
+  @ManyToOne(() => Copropriete, (copropriete) => copropriete.incidents, {
+    nullable: false, // Ensure this is set to false
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'coproprieteId' }) // Ensure the column name matches the database schema
+  copropriete: Copropriete;
 
   @ApiProperty({
     example: '2025-04-30T14:43:30.288Z',

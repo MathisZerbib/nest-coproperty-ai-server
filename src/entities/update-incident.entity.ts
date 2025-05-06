@@ -2,6 +2,8 @@ import { PartialType } from '@nestjs/mapped-types';
 import { ApiProperty } from '@nestjs/swagger'; // Added for consistency
 import { CreateIncidentDto } from './create-incident.entity';
 import { IsArray, IsDateString, IsOptional } from 'class-validator';
+import { Copropriete } from './copropriete.entity';
+import { ManyToOne, JoinColumn } from 'typeorm';
 
 export class UpdateIncidentDto extends PartialType(CreateIncidentDto) {
   @ApiProperty({
@@ -33,4 +35,15 @@ export class UpdateIncidentDto extends PartialType(CreateIncidentDto) {
   @IsDateString()
   @IsOptional()
   reportedAt?: Date;
+
+  @ApiProperty({
+    type: () => Copropriete,
+    description: 'The copropriete where the incident occurred',
+  })
+  @ManyToOne(() => Copropriete, (copropriete) => copropriete.incidents, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'coproprieteId' })
+  copropriete: Copropriete;
 }

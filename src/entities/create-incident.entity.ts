@@ -113,6 +113,14 @@ export class CreateIncidentDto {
   residentId: string;
 
   @ApiProperty({
+    example: '9eb739e0-651c-4b3a-8be8-9f99845c0527',
+    description: 'ID of the copropriete where the incident occurred',
+  })
+  @IsString()
+  @IsNotEmpty()
+  coproprieteId: string;
+
+  @ApiProperty({
     example: ['file1.pdf', 'file2.pdf'],
     description: 'Files related to the incident',
   })

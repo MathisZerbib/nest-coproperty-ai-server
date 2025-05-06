@@ -11,7 +11,7 @@ export class TokenCleanupService {
     private readonly refreshTokenRepository: Repository<RefreshToken>,
   ) {}
 
-  @Cron('0 0 * * *')
+  @Cron('0 0 * * *') /// Runs every day at midnight
   async handleCron() {
     console.log('Running cleanup for expired refresh tokens...');
     const result = await this.refreshTokenRepository.delete({

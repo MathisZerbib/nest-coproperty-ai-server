@@ -18,10 +18,10 @@ import { UsersService } from './users.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../../entities/user.entity';
 
-@ApiTags('Users') // Group routes under "Users" in Swagger
-@ApiBearerAuth() // Requires JWT Bearer token
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
-@UseGuards(AuthGuard) // Apply AuthGuard to all routes in this controller
+@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @ApiOperation({ summary: 'Get user by ID' })

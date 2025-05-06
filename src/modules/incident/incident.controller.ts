@@ -27,6 +27,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('Incidents')
 @ApiBearerAuth()
 @Controller('incidents')
+@UseGuards(AuthGuard)
 export class IncidentsController {
   constructor(private readonly incidentsService: IncidentsService) {}
 
@@ -39,6 +40,7 @@ export class IncidentsController {
     @Body() createIncidentDto: CreateIncidentDto,
     @UploadedFile() file?: Express.Multer.File, // Detect if a file is uploaded
   ): Promise<Incident> {
+    console.log('Creating incident:', createIncidentDto);
     return this.incidentsService.create(createIncidentDto, file);
   }
 
@@ -59,6 +61,24 @@ export class IncidentsController {
   @ApiResponse({ status: 404, description: 'Incident not found' })
   async findOne(@Param('id') id: string): Promise<Incident> {
     return this.incidentsService.findOne(id);
+  }
+
+  // get all incidents by copropriete id
+  @Get('copropriete/:id')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Retrieve incidents by copropriete ID' })
+  @ApiParam({ name: 'id', description: 'Copropriete ID' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'List of incidents for the specified copropriete retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No incidents found for the specified copropriete',
+  })
+  async findByCoproprieteId(@Param('id') id: string): Promise<Incident[]> {
+    return this.incidentsService.findByCoproprieteId(id);
   }
 
   // @Patch(':id/image')
