@@ -155,7 +155,6 @@ export class MessagesController {
 
       let buffer = ''; // Buffer to store incomplete words or sentences
       let aggregatedContent = ''; // Variable to store the entire response
-
       // Stream the assistant's messages incrementally
       for await (const chunk of stream) {
         buffer += chunk; // Append the chunk to the buffer
