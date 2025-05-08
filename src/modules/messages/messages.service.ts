@@ -5,10 +5,11 @@ import { Messages } from '../../entities/messages.entity';
 import { Conversation } from '../../entities/conversation.entity';
 import { PrivategptApiClient } from 'privategpt-sdk-node';
 import fs from 'fs';
+
 @Injectable()
 export class MessagesService {
   private readonly privateGptClient = new PrivategptApiClient({
-    environment: 'http://localhost:8001', // PrivateGPT API endpoint
+    environment: 'http://localhost:8001',
   });
 
   constructor(
@@ -26,9 +27,11 @@ export class MessagesService {
       where: { id },
       relations: ['messages'],
     });
+
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
+
     return conversation;
   }
 
@@ -37,7 +40,35 @@ export class MessagesService {
    */
   async createMessage(message: Partial<Messages>): Promise<Messages> {
     const newMessage = this.messagesRepository.create(message);
-    return this.messagesRepository.save(newMessage);
+    const savedMessage = await this.messagesRepository.save(newMessage);
+
+    // Check if the conversation has reached 10 messages
+    const conversation = await this.getConversationById(
+      message.conversation?.id ||
+        (() => {
+          throw new Error('Conversation ID is undefined');
+        })(),
+    );
+    if (conversation.messages.length % 10 === 0) {
+      await this.summarizeAndStoreConversation(conversation.id);
+    }
+    return savedMessage;
+  }
+
+  private async saveMessage(
+    conversation: Conversation,
+    content: string,
+    role: 'user' | 'assistant',
+    userId: string,
+    sequence_number: number,
+  ): Promise<Messages> {
+    return this.createMessage({
+      conversation,
+      content,
+      role,
+      userId,
+      sequence_number,
+    });
   }
 
   /**
@@ -74,36 +105,13 @@ export class MessagesService {
   }
 
   /**
-   * Query the local LLM (Ollama) with a given prompt.
-   */
-  async queryLocalLLM(prompt: string): Promise<string> {
-    try {
-      const response =
-        await this.privateGptClient.contextualCompletions.promptCompletion({
-          prompt,
-          includeSources: true,
-          useContext: true,
-        });
-
-      if (!response || !response.choices?.[0]?.message?.content) {
-        throw new Error('Invalid response from LLM');
-      }
-
-      return response.choices[0].message.content.trim();
-    } catch (error) {
-      console.error('Error querying LLM:', error);
-      throw new Error('Failed to query the local LLM');
-    }
-  }
-
-  /**
    * Query the local LLM (Ollama) with a given prompt using streaming.
    */
   async queryLocalLLMStream(
     content: string,
     docIds?: string[],
     abortSignal?: AbortSignal,
-  ): Promise<AsyncGenerator<string>> {
+  ): Promise<AsyncGenerator<string, any, any>> {
     try {
       // Build the RAG prompt directly using the user's content
       // const prompt = this.buildRAGPrompt('', content); // No manual context retrieval
@@ -143,89 +151,90 @@ export class MessagesService {
     }
   }
 
-  /**
-   * Ask a question to the assistant, save the user's question and the assistant's response.
-   */
-  async askQuestion(
-    conversationId: string,
-    userId: string,
-    question: string,
-  ): Promise<{ userMessage: Messages; assistantMessage: Messages }> {
-    // Retrieve the conversation
-    const conversation = await this.getConversationById(conversationId);
-
-    // Build the RAG prompt directly using the user's question
-    const prompt = this.buildRAGPrompt('', question); // No manual context retrieval
-
-    // Query the local LLM
-    const llmResponse = await this.queryLocalLLM(prompt);
-
-    const sequenceNumber = conversation.messages.length + 1;
-
-    // Save the user's question as a message
-    const userMessage = await this.createMessage({
-      conversation,
-      content: question,
-      role: 'user',
-      userId,
-      sequence_number: sequenceNumber,
-    });
-
-    // Save the LLM's response as a message
-    const assistantMessage = await this.createMessage({
-      conversation,
-      content: llmResponse,
-      role: 'assistant',
-      userId: userId,
-      sequence_number: sequenceNumber + 1,
-    });
-
-    // Return both messages
-    return { userMessage, assistantMessage };
-  }
-
-  /**
-   * Ask a question to the assistant with streaming, save the user's question and the assistant's aggregated response.
-   */
   async askQuestionWithStream(
     conversationId: string,
     userId: string,
     question: string,
-  ): Promise<{ userMessage: Messages; assistantMessage: Messages }> {
-    // Retrieve the conversation
+  ): Promise<AsyncGenerator<string>> {
+    console.log('Asking stream:', question);
+    const conversation = await this.getConversationById(conversationId);
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+    // Generate prompt using memory or plain question (based on your use case)
+    const prompt = await this.buildRAGPromptWithContext(
+      question,
+      conversationId,
+    );
+
+    // Stream the assistant's response
+    return this.queryLocalLLMStream(prompt);
+  }
+  async buildRAGPromptWithContext(
+    question: string,
+    conversationId: string,
+  ): Promise<string> {
     const conversation = await this.getConversationById(conversationId);
 
-    const sequenceNumber = conversation.messages.length + 1;
+    const recentMessages = conversation.messages
+      .slice(-6) // Last 3 user+assistant pairs
+      .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
 
-    // Save the user's question as a message
-    const userMessage = await this.createMessage({
-      conversation,
-      content: question,
-      role: 'user',
-      userId,
-      sequence_number: sequenceNumber,
-    });
+    const summary = conversation.summary || 'No summary available.';
 
-    // Query the local LLM with streaming
-    const stream = await this.queryLocalLLMStream(question);
+    return `
+  You are a helpful assistant.
+  
+  Conversation summary:
+  ${summary}
+  
+  Recent conversation:
+  ${recentMessages}
+  
+  User: ${question}
+  
+  Respond in French.
+  `;
+  }
 
-    let aggregatedContent = ''; // Buffer to aggregate all chunks
+  async generateSummaryStream(
+    conversationId: string,
+  ): Promise<AsyncGenerator<string>> {
+    const conversation = await this.getConversationById(conversationId);
+    const messages = conversation.messages
+      .slice(-6) // Last 3 user+assistant pairs
+      .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
 
-    // Process the stream and aggregate the chunks
-    for await (const chunk of stream) {
-      aggregatedContent += chunk; // Append each chunk to the buffer
+    const prompt = `Summarize the following conversation in French:\n${messages}`;
+
+    return this.queryLocalLLMStream(prompt);
+  }
+
+  async summarizeAndStoreConversation(conversationId: string): Promise<void> {
+    console.log(
+      `Starting summary generation for conversation: ${conversationId}`,
+    );
+
+    // Step 1: Stream the summary
+    const summaryStream = await this.generateSummaryStream(conversationId);
+
+    let summary = '';
+    for await (const chunk of summaryStream) {
+      summary += chunk;
     }
 
-    // Save the aggregated response as a single message
-    const assistantMessage = await this.createMessage({
-      conversation,
-      content: aggregatedContent,
-      role: 'assistant',
-      userId,
-      sequence_number: sequenceNumber + 1,
-    });
+    console.log('Final summary:', summary);
 
-    // Return the user's message and the assistant's aggregated message
-    return { userMessage, assistantMessage };
+    // Step 2: Store the summary
+    await this.storeSummary(conversationId, summary);
+    console.log(`Summary stored for conversation: ${conversationId}`);
+  }
+
+  async storeSummary(conversationId: string, summary: string): Promise<void> {
+    const conversation = await this.getConversationById(conversationId);
+    conversation.summary = summary;
+    await this.conversationRepository.save(conversation);
   }
 }

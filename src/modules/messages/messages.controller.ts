@@ -110,45 +110,6 @@ export class MessagesController {
     },
   })
   @UseGuards(AuthGuard)
-  @Post('ask')
-  async askQuestion(
-    @Body()
-    body: {
-      conversationId: string;
-      userId: string;
-      content: string;
-    },
-  ) {
-    const { conversationId, userId, content } = body;
-
-    // Wait for the LLM response and return both messages
-    const { userMessage, assistantMessage } =
-      await this.messagesService.askQuestion(conversationId, userId, content);
-
-    return {
-      userMessage,
-      assistantMessage,
-    };
-  }
-
-  @ApiOperation({
-    summary: 'Stream LLM response for a user question',
-    description:
-      'Stream the assistant’s response for a user question and save the conversation messages incrementally.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Streaming response from the assistant.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request. Missing or invalid parameters.',
-  })
-  @ApiResponse({
-    status: 500,
-    description: 'Internal server error. An unexpected error occurred.',
-  })
-  @UseGuards(AuthGuard)
   @Post('ask/stream')
   async streamLLMResponse(
     @Body()
@@ -181,7 +142,16 @@ export class MessagesController {
 
     try {
       // Query the local LLM with streaming
-      const stream = await this.messagesService.queryLocalLLMStream(content);
+      // const stream = await this.messagesService.queryLocalLLMStream(content);
+      const stream = await this.messagesService.askQuestionWithStream(
+        conversationId,
+        userId,
+        content,
+      );
+      if (!stream) {
+        res.status(500).send('Internal Server Error: No stream available');
+        return;
+      }
 
       let buffer = ''; // Buffer to store incomplete words or sentences
       let aggregatedContent = ''; // Variable to store the entire response
@@ -240,3 +210,43 @@ export class MessagesController {
     }
   }
 }
+
+// @UseGuards(AuthGuard)
+// @Post('ask')
+// async askQuestion(
+//   @Body()
+//   body: {
+//     conversationId: string;
+//     userId: string;
+//     content: string;
+//   },
+// ) {
+//   const { conversationId, userId, content } = body;
+
+//   // Wait for the LLM response and return both messages
+//   const { userMessage, assistantMessage } =
+//     await this.messagesService.askQuestion(conversationId, userId, content);
+
+//   return {
+//     userMessage,
+//     assistantMessage,
+//   };
+// }
+
+// @ApiOperation({
+//   summary: 'Stream LLM response for a user question',
+//   description:
+//     'Stream the assistant’s response for a user question and save the conversation messages incrementally.',
+// })
+// @ApiResponse({
+//   status: 200,
+//   description: 'Streaming response from the assistant.',
+// })
+// @ApiResponse({
+//   status: 400,
+//   description: 'Bad request. Missing or invalid parameters.',
+// })
+// @ApiResponse({
+//   status: 500,
+//   description: 'Internal server error. An unexpected error occurred.',
+// })

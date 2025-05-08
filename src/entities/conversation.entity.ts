@@ -61,4 +61,12 @@ export class Conversation {
   })
   @UpdateDateColumn()
   updated_at: Date;
+
+  /// can be null and its a string text named summary
+  @ApiProperty({
+    example: 'This is a summary of the conversation.',
+    description: 'Summary of the conversation',
+  })
+  @Column({ nullable: true })
+  summary: string;
 }

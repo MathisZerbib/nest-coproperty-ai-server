@@ -53,6 +53,7 @@ describe('ConversationController', () => {
         messages: [],
         created_at: new Date(),
         updated_at: new Date(),
+        summary: '',
       };
       conversationService.getConversationById.mockResolvedValue(
         mockConversation,
@@ -83,6 +84,7 @@ describe('ConversationController', () => {
           messages: [],
           created_at: new Date(),
           updated_at: new Date(),
+          summary: '',
         },
         {
           id: '2',
@@ -92,6 +94,7 @@ describe('ConversationController', () => {
           messages: [],
           created_at: new Date(),
           updated_at: new Date(),
+          summary: '',
         },
       ];
       const mockUser = { sub: 'user-id' };
@@ -131,6 +134,7 @@ describe('ConversationController', () => {
         messages: [],
         created_at: new Date(),
         updated_at: new Date(),
+        summary: '',
       };
 
       conversationService.create.mockResolvedValue(mockCreatedConversation);
@@ -175,6 +179,7 @@ describe('ConversationController', () => {
         messages: [],
         created_at: new Date(),
         updated_at: new Date(),
+        summary: '',
       };
 
       conversationService.updateConversation.mockResolvedValue({
@@ -219,6 +224,7 @@ describe('ConversationController', () => {
         messages: [],
         created_at: new Date(),
         updated_at: new Date(),
+        summary: '',
       };
 
       conversationService.deleteConversation.mockResolvedValue(
