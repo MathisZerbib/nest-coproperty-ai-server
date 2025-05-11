@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { FilesModule } from './modules/files/files.module';
 import { ResidentsModule } from './modules/residents/residents.module';
 import { IncidentModule } from './modules/incident/incident.module';
+import { AssemblyModule } from './modules/assembly/assembly.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { IncidentModule } from './modules/incident/incident.module';
     CoproprieteModule,
     UploadModule,
     FilesModule,
+    AssemblyModule,
   ],
 })
 export class AppModule {}

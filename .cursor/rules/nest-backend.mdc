@@ -1,0 +1,66 @@
+---
+description: Enforces best practices for building clean, scalable, and maintainable NestJS applications
+globs: 
+alwaysApply: false
+---
+---
+description: Enforce NestJS backend best practices for a clean, scalable, and maintainable codebase
+globs: src/**/*.ts
+---
+
+## NestJS Backend Guidelines
+
+### **Architecture**
+
+- **Modular Structure**: Use NestJS's modular architecture to structure the app by domains. Each module should have clear boundaries (e.g., `AuthModule`, `UserModule`).
+- **Separation of Concerns**: Keep concerns separated; Controllers handle HTTP requests, Services manage business logic, and Repositories interact with the database.
+
+### **Controllers**
+
+- **Single Responsibility**: Define one controller per route. Avoid putting too many endpoints in a single controller to keep them focused and easy to test.
+- **Minimal Logic**: Controllers should delegate the logic to services. Keep them as lightweight as possible, focusing on HTTP request handling and response formatting.
+- **Input Validation**: Use Pipes like `ValidationPipe` to validate incoming requests.
+
+### **Services**
+
+- **Stateless**: Services should be stateless to ensure scalability and maintainability. Do not store data in services; instead, pass it via method arguments.
+- **Encapsulation**: Encapsulate business logic within services. Services should not directly handle HTTP requests or responses.
+- **Single Responsibility**: Keep services focused on one specific domain of functionality (e.g., `AuthService` should only manage authentication).
+
+### **DTOs (Data Transfer Objects)**
+
+- **Validation**: Use `class-validator` to enforce input validation rules on DTOs (e.g., `@IsString()`, `@IsNotEmpty()`).
+- **Strict Validation**: Ensure DTOs use validation pipes (`ValidationPipe`) in controllers to validate and transform incoming data before it reaches services.
+- **DTOs for Output**: Use DTOs not only for input validation but also to format and shape the output data to ensure consistency.
+
+### **Entities**
+
+- **Avoid Business Logic in Entities**: Keep entities focused on data modeling only. Business logic should be encapsulated in services.
+- **Use Decorators**: Leverage TypeORM or Sequelize decorators to define entities and relations. Make use of `@Entity()`, `@Column()`, and `@PrimaryGeneratedColumn()` for defining fields.
+- **Data Consistency**: Ensure entities align with your database schema, avoiding redundant data or relationships that may affect database integrity.
+
+### **Naming Conventions**
+
+- **Classes**: Use `PascalCase` for classes (e.g., `AuthService`, `CreateUserDto`).
+- **Variables/Functions**: Use `camelCase` for variables and functions (e.g., `getUserById`, `userRepository`).
+- **Files/Folders**: Use `kebab-case` for filenames and folder names (e.g., `auth-controller.ts`, `user-service/`).
+- **Enum Values**: Use `UPPER_SNAKE_CASE` for enum values (e.g., `USER_ROLE_ADMIN`, `USER_ROLE_USER`).
+
+### **Error Handling**
+
+- **Global Exception Filters**: Implement global exception filters to handle exceptions in a consistent way across the entire app. Avoid using `try-catch` blocks in controllers.
+- **Custom Exceptions**: Create custom exceptions for specific error cases, ensuring they return meaningful error messages with HTTP status codes.
+- **Meaningful Error Responses**: Ensure error responses have clear and consistent error codes and messages. Do not expose sensitive error details to users.
+
+### **Testing**
+
+- **Unit Testing**: Write unit tests for services and controllers using Jest. Ensure that each unit test is independent, focused, and fast.
+- **Test Coverage**: Aim for high test coverage, especially on service logic and database interaction layers. Use mocking and stubbing where necessary (e.g., mock repositories in service tests).
+- **E2E Testing**: Use NestJS’s testing tools (`@nestjs/testing`) to write end-to-end tests to verify the application flow from HTTP requests to responses.
+
+### **Additional Best Practices**
+
+- **Use Guards for Authorization**: Protect routes with guards (e.g., `JwtAuthGuard`) to ensure users are authenticated and authorized before accessing resources.
+- **Use Interceptors**: Implement interceptors for transforming response data, logging requests, and handling exceptions in a central place.
+- **Use Dependency Injection**: Rely on NestJS's powerful Dependency Injection system to manage your service and repository dependencies.
+

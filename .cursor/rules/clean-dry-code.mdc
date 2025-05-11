@@ -1,0 +1,29 @@
+---
+description: This rule is helpful to write clean DRY & KISS code
+globs: 
+alwaysApply: false
+---
+---
+description: Enforce clean, maintainable code using KISS, DRY, and functional programming principles
+globs: src/**/*.ts
+alwaysApply: true
+---
+
+## Clean Code Principles
+
+- **KISS (Keep It Simple, Stupid)**: Avoid overengineering. Prefer clear and simple solutions over clever ones.
+- **DRY (Don't Repeat Yourself)**: Extract repeated logic into reusable functions, services, or utilities.
+- **Functions**: Keep functions small and focused. Each function should do one thing and do it well.
+- **Naming**: Use descriptive, unambiguous names. Avoid short or cryptic identifiers and use consistent naming conventions.
+- **Comments**: Only comment to explain *why* something is done, not *what*. Code should be self-explanatory.
+- **Error Handling**: Always handle errors explicitly. Use custom exceptions and avoid silent failures.
+- **Code Formatting**: Use a consistent code style across the team. Enforce with Prettier and ESLint.
+- **Dead Code**: Delete unused variables, functions, and imports. Keep the codebase clean and lean.
+
+## Functional Programming Practices
+
+- **Immutability**: Prefer `const` and avoid mutating state. Use pure functions that do not alter external state.
+- **Pure Functions**: Design functions with no side effects. Given the same input, they should always return the same output.
+- **Higher-Order Functions**: Favor `map`, `filter`, and `reduce` for transforming data instead of manual loops.
+- **No Side Effects**: Avoid modifying global or shared state inside functions.
+- **Composition Over Inheritance**: Build functionality through composition to reduce tight coupling and increase reusability.
