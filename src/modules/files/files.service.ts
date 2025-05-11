@@ -28,8 +28,8 @@ export class FilesService {
     }
 
     const filePath = path.join(this.uploadsRoot, record.fileUrl);
-    console.log(`File path resolved: ${filePath}`);
-    console.log(`File exists: ${fs.existsSync(filePath)}`);
+    // console.log(`File path resolved: ${filePath}`);
+    // console.log(`File exists: ${fs.existsSync(filePath)}`);
     if (!fs.existsSync(filePath)) {
       console.error(`File does not exist: ${filePath}`);
       throw new HttpException('File not found on disk', HttpStatus.NOT_FOUND);

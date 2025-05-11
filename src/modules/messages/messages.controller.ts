@@ -155,8 +155,14 @@ export class MessagesController {
 
       let buffer = ''; // Buffer to store incomplete words or sentences
       let aggregatedContent = ''; // Variable to store the entire response
+      let docIdList: string[] = []; // Array to store document IDs
       // Stream the assistant's messages incrementally
-      for await (const chunk of stream) {
+      for await (const { docIds, content: chunk } of stream) {
+        if (docIds) {
+          // Store the document IDs in the list ensure no duplicates
+          docIdList = Array.from(new Set([...docIdList, ...docIds]));
+          console.log('Sources List:', docIdList);
+        }
         buffer += chunk; // Append the chunk to the buffer
         aggregatedContent += chunk; // Append the chunk to the full response
 
@@ -171,11 +177,14 @@ export class MessagesController {
           buffer = ''; // Clear the buffer
         }
       }
-
+      if (docIdList.length > 0) {
+        res.write(`Sources: ${JSON.stringify(docIdList)}\n\n`);
+      }
       // Send any remaining content in the buffer
       if (buffer) {
         res.write(`${buffer}\n\n`);
       }
+      // Send the final document IDs
 
       clearInterval(keepAlive);
       res.end();
@@ -209,43 +218,3 @@ export class MessagesController {
     }
   }
 }
-
-// @UseGuards(AuthGuard)
-// @Post('ask')
-// async askQuestion(
-//   @Body()
-//   body: {
-//     conversationId: string;
-//     userId: string;
-//     content: string;
-//   },
-// ) {
-//   const { conversationId, userId, content } = body;
-
-//   // Wait for the LLM response and return both messages
-//   const { userMessage, assistantMessage } =
-//     await this.messagesService.askQuestion(conversationId, userId, content);
-
-//   return {
-//     userMessage,
-//     assistantMessage,
-//   };
-// }
-
-// @ApiOperation({
-//   summary: 'Stream LLM response for a user question',
-//   description:
-//     'Stream the assistant’s response for a user question and save the conversation messages incrementally.',
-// })
-// @ApiResponse({
-//   status: 200,
-//   description: 'Streaming response from the assistant.',
-// })
-// @ApiResponse({
-//   status: 400,
-//   description: 'Bad request. Missing or invalid parameters.',
-// })
-// @ApiResponse({
-//   status: 500,
-//   description: 'Internal server error. An unexpected error occurred.',
-// })
