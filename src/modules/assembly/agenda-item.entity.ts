@@ -32,7 +32,7 @@ export class AgendaItem {
   description: string;
 
   @Column()
-  requires_vote: boolean;
+  requiresVote: boolean;
 
   @Column({
     type: 'enum',
@@ -43,4 +43,11 @@ export class AgendaItem {
 
   @ManyToOne(() => Assembly, (assembly) => assembly.agenda)
   assembly: Assembly;
+
+  @Column({
+    type: 'enum',
+    enum: ['art24', 'art25', 'art26'],
+    nullable: true,
+  })
+  voteType: 'art24' | 'art25' | 'art26';
 }

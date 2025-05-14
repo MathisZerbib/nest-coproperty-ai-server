@@ -106,6 +106,23 @@ export class AssemblyController {
     return this.assemblyService.findAll();
   }
 
+  @Get('copropriete/:id')
+  @ApiOperation({ summary: 'Get assemblies by copropriete ID' })
+  @ApiParam({ name: 'id', description: 'Copropriete ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Return assemblies for the specified copropriete',
+    type: [Assembly],
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'No assemblies found for the specified copropriete',
+  })
+  async findByCopropriete(
+    @Param('id') coproprieteId: string,
+  ): Promise<Assembly[]> {
+    return this.assemblyService.findByCopropriete(coproprieteId);
+  }
   @Get(':id')
   @ApiOperation({ summary: 'Get assembly by id' })
   @ApiParam({ name: 'id', description: 'Assembly ID' })

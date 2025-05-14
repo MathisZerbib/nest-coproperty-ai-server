@@ -182,7 +182,7 @@ describe('AssemblyController', () => {
       const mockAgendaItem = {
         title: 'New Agenda Item',
         order: 1,
-        requires_vote: true,
+        requiresVote: true,
         description: 'Agenda item description',
         status: 'pending' as const,
       };

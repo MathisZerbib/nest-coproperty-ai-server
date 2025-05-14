@@ -31,6 +31,13 @@ export class AssemblyService {
     });
   }
 
+  async findByCopropriete(id: string): Promise<Assembly[]> {
+    return this.assemblyRepository.find({
+      where: { copropriety_id: id },
+      relations: ['agenda', 'decisions', 'documents', 'attendees'],
+    });
+  }
+
   async findOne(id: string): Promise<Assembly> {
     const assembly = await this.assemblyRepository.findOne({
       where: { id },
