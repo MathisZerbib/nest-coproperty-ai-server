@@ -19,7 +19,7 @@ export class AgendaItem {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column()
+  @Column({ name: 'assemblyId' })
   assembly_id: string;
 
   @Column()

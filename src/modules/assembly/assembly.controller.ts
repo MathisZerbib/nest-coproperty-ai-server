@@ -216,6 +216,39 @@ export class AssemblyController {
     return this.assemblyService.addAgendaItem(id, agendaItemData);
   }
 
+  @Delete(':id/agenda/:itemId')
+  @ApiOperation({ summary: 'Delete agenda item from assembly' })
+  @ApiParam({ name: 'id', description: 'Assembly ID' })
+  @ApiParam({ name: 'itemId', description: 'Agenda Item ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Agenda item has been deleted',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Assembly or Agenda item not found',
+  })
+  async deleteAgendaItem(
+    @Param('id') id: string,
+    @Param('itemId') itemId: string,
+  ): Promise<void> {
+    return this.assemblyService.deleteAgendaItem(id, itemId);
+  }
+
+  // In your assembly.controller.ts
+  @Patch(':id/agenda/:itemId')
+  async updateAgendaItem(
+    @Param('id') id: string,
+    @Param('itemId') itemId: string,
+    @Body() updateAgendaItemDto: Partial<AgendaItem>,
+  ) {
+    return this.assemblyService.updateAgendaItem(
+      id,
+      itemId,
+      updateAgendaItemDto,
+    );
+  }
+
   @Post(':id/decisions')
   @ApiOperation({ summary: 'Add decision to assembly' })
   @ApiParam({ name: 'id', description: 'Assembly ID' })

@@ -32,10 +32,39 @@ export class AssemblyService {
   }
 
   async findByCopropriete(id: string): Promise<Assembly[]> {
-    return this.assemblyRepository.find({
+    // First get the assemblies
+    const assemblies = await this.assemblyRepository.find({
       where: { copropriety_id: id },
-      relations: ['agenda', 'decisions', 'documents', 'attendees'],
+      order: { date: 'DESC' },
     });
+
+    // If no assemblies found, return empty array
+    if (!assemblies.length) return [];
+
+    // For each assembly, manually load its related entities
+    for (const assembly of assemblies) {
+      // Load agenda items
+      assembly.agenda = await this.agendaItemRepository.find({
+        where: { assembly_id: assembly.id },
+        order: { order: 'ASC' },
+      });
+      // Load decisions
+      assembly.decisions = await this.decisionRepository.find({
+        where: { assembly_id: assembly.id },
+      });
+
+      // Load documents
+      assembly.documents = await this.documentRepository.find({
+        where: { assembly_id: assembly.id },
+      });
+
+      // Load attendees
+      assembly.attendees = await this.attendeeRepository.find({
+        where: { assembly_id: assembly.id },
+      });
+    }
+
+    return assemblies;
   }
 
   async findOne(id: string): Promise<Assembly> {
@@ -47,6 +76,7 @@ export class AssemblyService {
     if (!assembly) {
       throw new NotFoundException(`Assembly with ID ${id} not found`);
     }
+    console.log('Assembly found:', assembly);
 
     return assembly;
   }
@@ -79,6 +109,74 @@ export class AssemblyService {
       assembly_id: id,
     });
     return this.agendaItemRepository.save(agendaItem);
+  }
+  async checkAgendaItems(assemblyId: string): Promise<AgendaItem[]> {
+    const agendaItems = await this.agendaItemRepository.find({
+      where: { assembly_id: assemblyId },
+    });
+    console.log(
+      `Found ${agendaItems.length} agenda items for assembly ${assemblyId}`,
+    );
+    return agendaItems;
+  }
+
+  async updateAgendaItem(
+    assemblyId: string,
+    agendaItemId: string,
+    agendaItemData: Partial<AgendaItem>,
+  ): Promise<AgendaItem> {
+    // First verify the assembly exists
+    await this.findOne(assemblyId);
+
+    // Find the agenda item
+    const agendaItem = await this.agendaItemRepository.findOne({
+      where: {
+        id: agendaItemId,
+        assembly_id: assemblyId,
+      },
+    });
+
+    if (!agendaItem) {
+      throw new NotFoundException(
+        `Agenda item with ID ${agendaItemId} not found in assembly ${assemblyId}`,
+      );
+    }
+
+    // Update the agenda item
+    Object.assign(agendaItem, agendaItemData);
+
+    return this.agendaItemRepository.save(agendaItem);
+  }
+
+  async deleteAgendaItem(
+    assemblyId: string,
+    agendaItemId: string,
+  ): Promise<void> {
+    // First verify the assembly exists
+    await this.findOne(assemblyId);
+
+    // Find the agenda item to make sure it exists and belongs to the assembly
+    const agendaItem = await this.agendaItemRepository.findOne({
+      where: {
+        id: agendaItemId,
+        assembly_id: assemblyId,
+      },
+    });
+
+    if (!agendaItem) {
+      throw new NotFoundException(
+        `Agenda item with ID ${agendaItemId} not found in assembly ${assemblyId}`,
+      );
+    }
+
+    // Delete the agenda item
+    const result = await this.agendaItemRepository.delete(agendaItemId);
+
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        `Agenda item with ID ${agendaItemId} not found`,
+      );
+    }
   }
 
   async addDecision(
@@ -121,7 +219,7 @@ export class AssemblyService {
     const assembly = await this.findOne(id);
     // Here you would implement the logic to generate minutes
     // This could involve AI processing, template filling, etc.
-    assembly.minutes = 'Generated minutes content'; // Placeholder
+    assembly.minutes = 'Generated minutes content';
     return this.assemblyRepository.save(assembly);
   }
 
