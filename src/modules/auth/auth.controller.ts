@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Post,
   Req,
@@ -13,6 +14,7 @@ import { AuthService } from './auth.service';
 import { SignInEntity } from '../../entities/sign-in.entity';
 import { SignUpEntity } from '../../entities/sign-up.entity';
 import { AuthGuard } from './auth.guard';
+import { GoogleCallbackEntity } from '../../entities/google-callback.entity';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -50,6 +52,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
   async refreshAccessToken(@Body() refreshDto: { refresh_token: string }) {
+    if (!refreshDto.refresh_token) {
+      throw new HttpException(
+        'Refresh token is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return this.authService.refreshAccessToken(refreshDto.refresh_token);
   }
 
@@ -59,6 +67,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logout(@Body() logoutDto: { refresh_token: string }) {
+    if (!logoutDto.refresh_token) {
+      throw new HttpException(
+        'Refresh token is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     await this.authService.revokeRefreshToken(logoutDto.refresh_token);
     return { message: 'Logged out successfully' };
   }
@@ -71,5 +85,61 @@ export class AuthController {
   getAuthenticatedUser(@Req() req: { user: { sub: string } }) {
     const userId = req.user.sub;
     return { userId };
+  }
+
+  @ApiOperation({ summary: 'Handle Google OAuth authentication' })
+  @ApiBody({ type: GoogleCallbackEntity })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully authenticated with Google',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid Google authentication data',
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('google')
+  async handleGoogleAuth(@Body() googleData: GoogleCallbackEntity) {
+    try {
+      return await this.authService.handleGoogleCallback(googleData);
+    } catch (error) {
+      console.error('Google authentication error:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Invalid Google authentication data';
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @ApiOperation({ summary: 'Refresh access token (NextAuth.js compatible)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        refreshToken: {
+          type: 'string',
+          description: 'The refresh token to use',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Access token refreshed' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token' })
+  @HttpCode(HttpStatus.OK)
+  @Post('token')
+  async refreshToken(@Body() body: { refreshToken: string }) {
+    if (!body.refreshToken) {
+      throw new HttpException(
+        'Refresh token is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const result = await this.authService.refreshAccessToken(body.refreshToken);
+    return {
+      accessToken: result.access_token,
+      refreshToken: body.refreshToken,
+      expiresIn: 3600, // 1 hour in seconds
+    };
   }
 }

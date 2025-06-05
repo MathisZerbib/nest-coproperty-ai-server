@@ -34,7 +34,7 @@ export class UsersService {
     return user ?? undefined;
   }
 
-  async update(user: User): Promise<User> {
+  async update(userId: string, user: User): Promise<User> {
     return this.userRepository.save(user);
   }
   private async comparePasswords(

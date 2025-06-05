@@ -9,6 +9,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger'; // Added
 import { RefreshToken } from './refresh-token.entity';
 import { Copropriete } from './copropriete.entity';
+import { Resident } from './resident.entity';
 
 @Entity()
 export class User {
@@ -57,6 +58,41 @@ export class User {
   role: string;
 
   @ApiProperty({
+    example: '123456789',
+    description: 'Google ID of the user',
+  })
+  @Column({ nullable: true })
+  googleId: string;
+
+  @ApiProperty({
+    example: 'https://example.com/profile.jpg',
+    description: 'Profile picture URL of the user',
+  })
+  @Column({ nullable: true })
+  profilePicture: string;
+
+  @ApiProperty({
+    type: () => [RefreshToken],
+    description: 'List of refresh tokens associated with the user',
+  })
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshTokens: RefreshToken[];
+
+  @ApiProperty({
+    type: () => [Resident],
+    description: 'Residents associated with the user',
+  })
+  @OneToMany(() => Resident, (resident) => resident.user)
+  residents: Resident[];
+
+  @ApiProperty({
+    type: () => [Copropriete],
+    description: 'Coproprietes associated with the user',
+  })
+  @OneToMany(() => Copropriete, (copropriete) => copropriete.user)
+  coproprietes: Copropriete[];
+
+  @ApiProperty({
     example: '2025-05-01T12:00:00.000Z',
     description: 'Date when the user was created',
   })
@@ -69,18 +105,4 @@ export class User {
   })
   @UpdateDateColumn()
   updated_at: Date;
-
-  @ApiProperty({
-    type: () => [RefreshToken],
-    description: 'List of refresh tokens associated with the user',
-  })
-  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
-  refreshTokens: RefreshToken[];
-
-  @ApiProperty({
-    type: () => [Copropriete],
-    description: 'List of coproprietes associated with the user',
-  })
-  @OneToMany(() => Copropriete, (copropriete) => copropriete.user)
-  coproprietes: Copropriete[];
 }

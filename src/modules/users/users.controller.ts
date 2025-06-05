@@ -68,7 +68,7 @@ export class UsersController {
     if (!existingUser) {
       throw new NotFoundException('User not found');
     }
-    return await this.usersService.update({ ...existingUser, ...user });
+    return await this.usersService.update(id, { ...existingUser, ...user });
   }
 
   @ApiOperation({ summary: 'Update user password' })

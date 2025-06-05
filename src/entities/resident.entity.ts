@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Incident } from './incidents.entity';
 import { Copropriete } from './copropriete.entity';
+import { User } from './user.entity';
 
 @Entity('residents')
 export class Resident {
@@ -120,4 +121,15 @@ export class Resident {
   })
   @UpdateDateColumn({ name: 'updatedAt' }) // camelCase for consistency
   updatedAt: Date;
+
+  @ApiProperty({
+    type: () => User,
+    description: 'The user associated with this resident',
+  })
+  @ManyToOne(() => User, (user) => user.residents)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @Column({ name: 'userId', nullable: true })
+  userId: string;
 }

@@ -6,11 +6,13 @@ import { AuthController } from './auth.controller';
 import { jwtConstants } from './constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from '../../entities/refresh-token.entity';
-import { TokenCleanupService } from './token-cleanup.service'; // Import the service
+import { TokenCleanupService } from './token-cleanup.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     UsersModule,
+    ConfigModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
@@ -18,7 +20,7 @@ import { TokenCleanupService } from './token-cleanup.service'; // Import the ser
     }),
     TypeOrmModule.forFeature([RefreshToken]),
   ],
-  providers: [AuthService, TokenCleanupService], // Register the service
+  providers: [AuthService, TokenCleanupService],
   controllers: [AuthController],
   exports: [AuthService],
 })
