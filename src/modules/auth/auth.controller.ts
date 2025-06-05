@@ -15,11 +15,15 @@ import { SignInEntity } from '../../entities/sign-in.entity';
 import { SignUpEntity } from '../../entities/sign-up.entity';
 import { AuthGuard } from './auth.guard';
 import { GoogleCallbackEntity } from '../../entities/google-callback.entity';
+import { UsersService } from '../users/users.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @ApiOperation({ summary: 'Sign in a user' })
   @ApiBody({ type: SignInEntity })
@@ -82,9 +86,22 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(AuthGuard)
   @Get('me')
-  getAuthenticatedUser(@Req() req: { user: { sub: string } }) {
+  async getAuthenticatedUser(@Req() req: { user: { sub: string } }) {
     const userId = req.user.sub;
-    return { userId };
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      userId: user.userId,
+      username: user.username,
+      email: user.email,
+      image: user.profilePicture,
+      emailVerified: user.googleId ? new Date() : null,
+      role: user.role,
+    };
   }
 
   @ApiOperation({ summary: 'Handle Google OAuth authentication' })
